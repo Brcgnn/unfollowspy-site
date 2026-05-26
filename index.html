@@ -1237,13 +1237,14 @@
 </footer>
 
 <script>
-// ── Canvas: nebulas + planet + stars + meteors + mouse parallax ──
+// ── Canvas: nebulas + planet (cached) + stars + meteors + mouse parallax ──
 const canvas = document.getElementById('bg-canvas');
 const ctx    = canvas.getContext('2d');
+const isMobile = window.innerWidth < 700;
 let W, H, mouseX = 0, mouseY = 0;
 let stars = [], meteors = [];
+let planetCache = null; // offscreen canvas for planet
 
-// Nebula cloud definitions (relative positions)
 const NEBULAS = [
   { xr: 0.15, yr: 0.28, r: 380, c: [80,40,220],  bo: 0.07 },
   { xr: 0.72, yr: 0.65, r: 320, c: [0,170,230],   bo: 0.055 },
@@ -1255,18 +1256,109 @@ const NEBULAS = [
 function resize() {
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
+  planetCache = null; // invalidate cache on resize
 }
 
 function initStars() {
-  stars = Array.from({ length: 220 }, () => ({
+  const count = isMobile ? 110 : 220;
+  stars = Array.from({ length: count }, () => ({
     x:     Math.random() * W,
     y:     Math.random() * H,
     r:     Math.random() * 1.6 + 0.2,
     o:     Math.random() * 0.55 + 0.1,
     speed: Math.random() * 0.014 + 0.004,
     phase: Math.random() * Math.PI * 2,
-    depth: Math.random()
+    depth: Math.random(),
+    bright: Math.random() > 0.75 // only ~25% get halos
   }));
+}
+
+// Cache planet to an offscreen canvas — drawn once, blitted every frame
+function buildPlanetCache() {
+  const r   = Math.min(W, H) * 0.1;
+  const pad = r * 3.5;
+  const size = pad * 2;
+  const oc  = document.createElement('canvas');
+  oc.width  = size;
+  oc.height = size;
+  const c   = oc.getContext('2d');
+  const cx  = pad, cy = pad;
+
+  const atmo = c.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 3.2);
+  atmo.addColorStop(0, 'rgba(80,130,230,0.07)');
+  atmo.addColorStop(1, 'rgba(80,130,230,0)');
+  c.beginPath(); c.arc(cx, cy, r * 3.2, 0, Math.PI * 2);
+  c.fillStyle = atmo; c.fill();
+
+  const body = c.createRadialGradient(cx - r * 0.28, cy - r * 0.32, r * 0.08, cx, cy, r);
+  body.addColorStop(0,   'rgba(160,195,255,0.2)');
+  body.addColorStop(0.4, 'rgba(90,130,215,0.14)');
+  body.addColorStop(0.8, 'rgba(40,70,170,0.09)');
+  body.addColorStop(1,   'rgba(20,40,120,0)');
+  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2);
+  c.fillStyle = body; c.fill();
+
+  c.save();
+  c.translate(cx, cy); c.rotate(-0.28); c.scale(1, 0.28);
+  c.beginPath(); c.arc(0, 0, r * 1.75, 0, Math.PI * 2);
+  c.strokeStyle = 'rgba(140,185,250,0.07)'; c.lineWidth = 10; c.stroke();
+  c.beginPath(); c.arc(0, 0, r * 2.05, 0, Math.PI * 2);
+  c.strokeStyle = 'rgba(140,185,250,0.04)'; c.lineWidth = 5; c.stroke();
+  c.restore();
+
+  return { canvas: oc, r, pad };
+}
+
+function drawNebulas(t) {
+  ctx.globalCompositeOperation = 'screen';
+  for (const n of NEBULAS) {
+    const x = n.xr * W + Math.sin(t * 0.00025 + n.xr * 8) * 55;
+    const y = n.yr * H + Math.cos(t * 0.00018 + n.yr * 9) * 38;
+    const o = n.bo * (0.75 + 0.25 * Math.sin(t * 0.0009 + n.xr * 5));
+    const g = ctx.createRadialGradient(x, y, 0, x, y, n.r);
+    g.addColorStop(0,    `rgba(${n.c[0]},${n.c[1]},${n.c[2]},${o})`);
+    g.addColorStop(0.45, `rgba(${n.c[0]},${n.c[1]},${n.c[2]},${o * 0.35})`);
+    g.addColorStop(1,    `rgba(${n.c[0]},${n.c[1]},${n.c[2]},0)`);
+    ctx.beginPath(); ctx.arc(x, y, n.r, 0, Math.PI * 2);
+    ctx.fillStyle = g; ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawPlanet() {
+  if (!planetCache) planetCache = buildPlanetCache();
+  const { canvas: pc, pad } = planetCache;
+  const px = W * 0.84 - pad;
+  const py = H * 0.16 - pad;
+  ctx.drawImage(pc, px, py);
+}
+
+function drawStars(t) {
+  // Draw halos first using shadowBlur — one state change, no per-star gradient objects
+  ctx.save();
+  ctx.shadowColor = 'rgba(168,200,232,0.5)';
+  for (const s of stars) {
+    if (!s.bright) continue;
+    const px = s.x + mouseX * s.depth * 20;
+    const py = s.y + mouseY * s.depth * 20;
+    const o  = s.o * (0.6 + 0.4 * Math.sin(t * s.speed + s.phase));
+    ctx.shadowBlur = s.r * 10;
+    ctx.globalAlpha = o * 0.35;
+    ctx.beginPath(); ctx.arc(px, py, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#a8c8e8'; ctx.fill();
+  }
+  ctx.restore();
+
+  // Draw all star bodies
+  for (const s of stars) {
+    const px = s.x + mouseX * s.depth * 20;
+    const py = s.y + mouseY * s.depth * 20;
+    const o  = s.o * (0.6 + 0.4 * Math.sin(t * s.speed + s.phase));
+    ctx.globalAlpha = o;
+    ctx.beginPath(); ctx.arc(px, py, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#a8c8e8'; ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }
 
 function spawnMeteor() {
@@ -1283,91 +1375,6 @@ function spawnMeteor() {
   });
 }
 
-function drawNebulas(t) {
-  ctx.globalCompositeOperation = 'screen';
-  for (const n of NEBULAS) {
-    const drift = 55;
-    const x = n.xr * W + Math.sin(t * 0.00025 + n.xr * 8) * drift;
-    const y = n.yr * H + Math.cos(t * 0.00018 + n.yr * 9) * (drift * 0.7);
-    const o = n.bo * (0.75 + 0.25 * Math.sin(t * 0.0009 + n.xr * 5));
-    const g = ctx.createRadialGradient(x, y, 0, x, y, n.r);
-    g.addColorStop(0,   `rgba(${n.c[0]},${n.c[1]},${n.c[2]},${o})`);
-    g.addColorStop(0.45,`rgba(${n.c[0]},${n.c[1]},${n.c[2]},${o * 0.35})`);
-    g.addColorStop(1,   `rgba(${n.c[0]},${n.c[1]},${n.c[2]},0)`);
-    ctx.beginPath();
-    ctx.arc(x, y, n.r, 0, Math.PI * 2);
-    ctx.fillStyle = g;
-    ctx.fill();
-  }
-  ctx.globalCompositeOperation = 'source-over';
-}
-
-function drawPlanet() {
-  const px = W * 0.84, py = H * 0.16;
-  const r  = Math.min(W, H) * 0.1;
-
-  // Outer atmospheric glow
-  const atmo = ctx.createRadialGradient(px, py, r * 0.5, px, py, r * 3.2);
-  atmo.addColorStop(0, 'rgba(80,130,230,0.07)');
-  atmo.addColorStop(1, 'rgba(80,130,230,0)');
-  ctx.beginPath();
-  ctx.arc(px, py, r * 3.2, 0, Math.PI * 2);
-  ctx.fillStyle = atmo;
-  ctx.fill();
-
-  // Planet body
-  const body = ctx.createRadialGradient(px - r * 0.28, py - r * 0.32, r * 0.08, px, py, r);
-  body.addColorStop(0,   'rgba(160,195,255,0.2)');
-  body.addColorStop(0.4, 'rgba(90,130,215,0.14)');
-  body.addColorStop(0.8, 'rgba(40,70,170,0.09)');
-  body.addColorStop(1,   'rgba(20,40,120,0)');
-  ctx.beginPath();
-  ctx.arc(px, py, r, 0, Math.PI * 2);
-  ctx.fillStyle = body;
-  ctx.fill();
-
-  // Ring
-  ctx.save();
-  ctx.translate(px, py);
-  ctx.rotate(-0.28);
-  ctx.scale(1, 0.28);
-  ctx.beginPath();
-  ctx.arc(0, 0, r * 1.75, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(140,185,250,0.07)';
-  ctx.lineWidth = 10;
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(0, 0, r * 2.05, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(140,185,250,0.04)';
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawStars(t) {
-  for (const s of stars) {
-    const px = s.x + mouseX * s.depth * 20;
-    const py = s.y + mouseY * s.depth * 20;
-    const o  = s.o * (0.6 + 0.4 * Math.sin(t * s.speed + s.phase));
-
-    // Halo for brighter stars
-    if (s.r > 1.0) {
-      const halo = ctx.createRadialGradient(px, py, 0, px, py, s.r * 9);
-      halo.addColorStop(0, `rgba(168,200,232,${o * 0.28})`);
-      halo.addColorStop(1, 'rgba(168,200,232,0)');
-      ctx.beginPath();
-      ctx.arc(px, py, s.r * 9, 0, Math.PI * 2);
-      ctx.fillStyle = halo;
-      ctx.fill();
-    }
-
-    ctx.beginPath();
-    ctx.arc(px, py, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(168,200,232,${o})`;
-    ctx.fill();
-  }
-}
-
 function drawMeteors() {
   spawnMeteor();
   meteors = meteors.filter(m => m.life < m.maxLife);
@@ -1379,29 +1386,21 @@ function drawMeteors() {
     const ty = m.y - (m.vy / mag) * m.tail;
 
     const grad = ctx.createLinearGradient(tx, ty, m.x, m.y);
-    grad.addColorStop(0, 'rgba(168,200,232,0)');
+    grad.addColorStop(0,   'rgba(168,200,232,0)');
     grad.addColorStop(0.7, `rgba(200,225,250,${alpha * 0.55})`);
     grad.addColorStop(1,   `rgba(230,245,255,${alpha * 0.85})`);
 
-    ctx.beginPath();
-    ctx.moveTo(tx, ty);
-    ctx.lineTo(m.x, m.y);
-    ctx.strokeStyle = grad;
-    ctx.lineWidth   = m.width;
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(m.x, m.y);
+    ctx.strokeStyle = grad; ctx.lineWidth = m.width; ctx.stroke();
 
-    // Head spark
-    const spark = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, 4);
-    spark.addColorStop(0, `rgba(240,250,255,${alpha})`);
-    spark.addColorStop(1, 'rgba(240,250,255,0)');
-    ctx.beginPath();
-    ctx.arc(m.x, m.y, 4, 0, Math.PI * 2);
-    ctx.fillStyle = spark;
-    ctx.fill();
+    ctx.save();
+    ctx.shadowBlur = 6; ctx.shadowColor = `rgba(200,230,255,${alpha * 0.6})`;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath(); ctx.arc(m.x, m.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = '#e8f5ff'; ctx.fill();
+    ctx.restore();
 
-    m.x += m.vx;
-    m.y += m.vy;
-    m.life++;
+    m.x += m.vx; m.y += m.vy; m.life++;
   }
 }
 
@@ -1424,7 +1423,7 @@ resize();
 initStars();
 requestAnimationFrame(draw);
 
-// ── 3D card tilt ──
+// ── 3D card tilt (transform only — no boxShadow paint changes) ──
 const tiltCard = document.getElementById('tilt-card');
 let tiltActive = false;
 
@@ -1438,16 +1437,12 @@ window.addEventListener('mousemove', e => {
   if (dist < 380) {
     const dx = (e.clientX - cx) / (rect.width  / 2);
     const dy = (e.clientY - cy) / (rect.height / 2);
-    const rx = dy * 14;
-    const ry = -dx * 14;
     tiltCard.style.animation = 'none';
-    tiltCard.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.02)`;
-    tiltCard.style.boxShadow = `${-ry * 2}px ${rx * 2}px 80px rgba(0,0,0,0.7), 0 0 60px rgba(168,200,232,0.08)`;
+    tiltCard.style.transform = `perspective(900px) rotateX(${dy * 14}deg) rotateY(${-dx * 14}deg) scale(1.02)`;
     tiltActive = true;
   } else if (tiltActive) {
-    tiltCard.style.animation  = '';
-    tiltCard.style.transform  = '';
-    tiltCard.style.boxShadow  = '';
+    tiltCard.style.animation = '';
+    tiltCard.style.transform = '';
     tiltActive = false;
   }
 }, { passive: true });
@@ -1465,25 +1460,30 @@ const revealObs = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
 
 function animateCounter(el) {
-  const target   = parseInt(el.dataset.target, 10);
-  const suffix   = el.dataset.suffix || '';
-  const duration = 1400;
+  const target = parseInt(el.dataset.target, 10);
+  const suffix = el.dataset.suffix || '';
   let start = null;
   (function step(ts) {
     if (!start) start = ts;
-    const p    = Math.min((ts - start) / duration, 1);
+    const p    = Math.min((ts - start) / 1400, 1);
     const ease = 1 - Math.pow(1 - p, 3);
     el.textContent = Math.floor(ease * target) + suffix;
     if (p < 1) requestAnimationFrame(step);
   })(performance.now());
 }
 
-// ── Hero parallax on scroll ──
+// ── Hero parallax — throttled with rAF so it never fires faster than 60fps ──
+const hero = document.querySelector('.hero');
+let scrollTicking = false;
 window.addEventListener('scroll', () => {
-  const hero    = document.querySelector('.hero');
-  const scrolled = window.scrollY;
-  hero.style.transform = `translateY(${scrolled * 0.26}px)`;
-  hero.style.opacity   = Math.max(0, 1 - scrolled / 580);
+  if (scrollTicking) return;
+  scrollTicking = true;
+  requestAnimationFrame(() => {
+    const s = window.scrollY;
+    hero.style.transform = `translateY(${s * 0.26}px)`;
+    hero.style.opacity   = Math.max(0, 1 - s / 580);
+    scrollTicking = false;
+  });
 }, { passive: true });
 </script>
 </body>
