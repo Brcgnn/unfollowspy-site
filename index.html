@@ -728,7 +728,8 @@
     .pc-bluesky:hover { border-color: rgba(32,139,254,0.25);  box-shadow: 0 20px 50px rgba(32,139,254,0.07); }
     .pc-rednote:hover { border-color: rgba(239,68,68,0.25);   box-shadow: 0 20px 50px rgba(239,68,68,0.07); }
 
-    .platform-emoji { font-size: 32px; margin-bottom: 14px; display: block; }
+    .platform-logo { width: 38px; height: 38px; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; }
+    .platform-logo svg { width: 100%; height: 100%; }
     .platform-name  { font-size: 13px; font-weight: 700; color: var(--text); }
 
     /* ── Pricing ── */
@@ -1104,12 +1105,68 @@
     <p class="section-sub">No more switching between separate tools. UnfollowSpy tracks everything in one dashboard.</p>
   </div>
   <div class="platforms-showcase">
-    <div class="platform-card pc-x reveal reveal-delay-1"><span class="platform-emoji">𝕏</span><div class="platform-name">X</div></div>
-    <div class="platform-card pc-insta reveal reveal-delay-2"><span class="platform-emoji">📸</span><div class="platform-name">Instagram</div></div>
-    <div class="platform-card pc-threads reveal reveal-delay-3"><span class="platform-emoji">🧵</span><div class="platform-name">Threads</div></div>
-    <div class="platform-card pc-tiktok reveal reveal-delay-1"><span class="platform-emoji">🎵</span><div class="platform-name">TikTok</div></div>
-    <div class="platform-card pc-bluesky reveal reveal-delay-2"><span class="platform-emoji">🦋</span><div class="platform-name">Bluesky</div></div>
-    <div class="platform-card pc-rednote reveal reveal-delay-3"><span class="platform-emoji">📕</span><div class="platform-name">RedNote</div></div>
+
+    <div class="platform-card pc-x reveal reveal-delay-1">
+      <div class="platform-logo">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </div>
+      <div class="platform-name">X</div>
+    </div>
+
+    <div class="platform-card pc-insta reveal reveal-delay-2">
+      <div class="platform-logo">
+        <svg viewBox="0 0 24 24">
+          <defs>
+            <linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#feda75"/>
+              <stop offset="25%" stop-color="#fa7e1e"/>
+              <stop offset="50%" stop-color="#d62976"/>
+              <stop offset="75%" stop-color="#962fbf"/>
+              <stop offset="100%" stop-color="#4f5bd5"/>
+            </linearGradient>
+          </defs>
+          <rect x="1" y="1" width="22" height="22" rx="6" fill="url(#ig)"/>
+          <circle cx="12" cy="12" r="5.2" fill="none" stroke="white" stroke-width="2"/>
+          <circle cx="17.2" cy="6.8" r="1.4" fill="white"/>
+        </svg>
+      </div>
+      <div class="platform-name">Instagram</div>
+    </div>
+
+    <div class="platform-card pc-threads reveal reveal-delay-3">
+      <div class="platform-logo">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068V12c.012-3.764.932-6.707 2.734-8.747C6.099 1.198 8.895 0 12.503 0c2.916 0 5.332.876 7.18 2.602 1.761 1.648 2.772 3.886 3.003 6.649l-2.957.265c-.352-4.851-3.069-7.26-7.226-7.26-2.776 0-4.957.934-6.483 2.776C4.559 6.698 3.93 9.088 3.921 12c.009 2.968.639 5.394 1.872 7.208 1.527 2.168 3.905 3.281 7.075 3.301 2.765-.016 5.01-.71 6.676-2.063 1.84-1.502 2.755-3.718 2.755-6.637 0-.438-.014-.873-.043-1.302-.03-.43-.071-.857-.123-1.277-1.041.266-1.98.408-2.812.426-.19.004-.377.006-.564.006a6.18 6.18 0 01-4.532-1.787 6.23 6.23 0 01-1.747-4.478c0-1.718.574-3.17 1.707-4.317C15.233 3.887 16.685 3.27 18.3 3.27c1.561 0 2.877.554 3.81 1.603.89 1 1.38 2.38 1.38 3.91 0 1.79-.614 3.266-1.774 4.265-.935.801-2.1 1.23-3.37 1.236-.667 0-1.288-.152-1.803-.442a4.152 4.152 0 01-.52-.362C15.9 14.4 15.162 15 14.26 15.257c-.553.158-1.143.238-1.756.238-1.367 0-2.581-.538-3.424-1.514-.846-.98-1.28-2.33-1.22-3.8.063-1.463.622-2.762 1.574-3.664.954-.9 2.238-1.378 3.72-1.378.805 0 1.556.147 2.228.436l-.003-.012.633-2.83c-.908-.405-1.892-.61-2.923-.61z"/></svg>
+      </div>
+      <div class="platform-name">Threads</div>
+    </div>
+
+    <div class="platform-card pc-tiktok reveal reveal-delay-1">
+      <div class="platform-logo">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.19a8.18 8.18 0 004.85 1.56V6.31a4.83 4.83 0 01-1.08-.62z"/></svg>
+      </div>
+      <div class="platform-name">TikTok</div>
+    </div>
+
+    <div class="platform-card pc-bluesky reveal reveal-delay-2">
+      <div class="platform-logo">
+        <svg viewBox="0 0 24 24" fill="#0085ff"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.395 4.267-3.913 1.592-6.514-2.498-7.205a9.744 9.744 0 01-.414-.06c.138.017.276.036.414.06 2.671.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>
+      </div>
+      <div class="platform-name">Bluesky</div>
+    </div>
+
+    <div class="platform-card pc-rednote reveal reveal-delay-3">
+      <div class="platform-logo">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="2" width="15" height="20" rx="2.5" fill="#ff2442"/>
+          <rect x="2.5" y="3.5" width="3" height="17" rx="1.5" fill="#cc1133"/>
+          <rect x="7.5" y="8" width="7" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/>
+          <rect x="7.5" y="11" width="5.5" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/>
+          <rect x="7.5" y="14" width="6.5" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/>
+        </svg>
+      </div>
+      <div class="platform-name">RedNote</div>
+    </div>
+
   </div>
 </section>
 
