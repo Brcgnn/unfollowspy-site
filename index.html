@@ -229,6 +229,12 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    .hw.grad {
+      animation:
+        wordIn 0.85s calc(0.3s + var(--hd, 0s)) cubic-bezier(0.16, 1, 0.3, 1) forwards,
+        gradShift 8s ease infinite;
+    }
+
     .grad {
       background: linear-gradient(135deg, var(--accent) 0%, #7ab8e8 20%, var(--purple) 45%, var(--rose) 65%, var(--warm) 85%, var(--accent) 100%);
       background-size: 300% 300%;
