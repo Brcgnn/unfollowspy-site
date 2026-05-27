@@ -5,27 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UnfollowSpy – Know Who Unfollowed You</title>
   <style>
-    @property --holo-angle {
-      syntax: '<angle>';
-      initial-value: 0deg;
-      inherits: false;
-    }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #05090f;
-      --surface: #0d1720;
-      --surface2: #131f2c;
-      --faint: #1a2a3a;
-      --accent: #a8c8e8;
-      --accent2: #c0d9f0;
-      --text: #e8eaeb;
-      --muted: #526270;
-      --rose: #f4a0b5;
-      --sage: #86c9a8;
-      --warm: #f5d78e;
-      --purple: #c4a0f4;
+      --bg:      #07090f;
+      --surface: rgba(255,255,255,0.034);
+      --border:  rgba(255,255,255,0.07);
+      --accent:  #a8c8e8;
+      --text:    #eef0f3;
+      --muted:   #48586a;
+      --muted2:  #8a9eb0;
+      --sage:    #86c9a8;
+      --rose:    #f4a0b5;
+      --warm:    #f5d78e;
     }
 
     html { scroll-behavior: smooth; }
@@ -37,874 +29,414 @@
       overflow-x: hidden;
     }
 
-    /* ── Film grain ── */
+    /* Grain */
     body::before {
       content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 3;
-      pointer-events: none;
-      opacity: 0.038;
+      position: fixed; inset: 0; z-index: 50; pointer-events: none;
+      opacity: 0.042;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
       background-size: 200px 200px;
     }
 
-    /* ── Fixed backgrounds ── */
-    #bg-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
+    /* Subtle top glow — CSS only, zero JS */
+    .bg-glow {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 1600px; height: 900px;
+      background: radial-gradient(ellipse 900px 500px at 50% -60px, rgba(40,90,220,0.09) 0%, rgba(20,50,160,0.04) 50%, transparent 75%);
+      pointer-events: none; z-index: 0;
     }
 
-    /* ── Vignette ── */
-    .vignette {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      background: radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(0,0,0,0.55) 100%);
-    }
-
-    /* ── Aurora ── */
-    .aurora {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .aorb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(130px);
-    }
-
-    .aorb-1 {
-      width: 800px; height: 600px;
-      background: radial-gradient(ellipse, rgba(60,120,210,0.28) 0%, transparent 65%);
-      top: -200px; left: -150px;
-      animation: ad1 28s ease-in-out infinite;
-    }
-    .aorb-2 {
-      width: 650px; height: 500px;
-      background: radial-gradient(ellipse, rgba(200,60,140,0.18) 0%, transparent 65%);
-      bottom: -150px; right: -200px;
-      animation: ad2 32s ease-in-out infinite;
-    }
-    .aorb-3 {
-      width: 500px; height: 400px;
-      background: radial-gradient(ellipse, rgba(50,200,160,0.14) 0%, transparent 65%);
-      top: 35%; left: 50%;
-      animation: ad3 22s ease-in-out infinite;
-    }
-    .aorb-4 {
-      width: 600px; height: 400px;
-      background: radial-gradient(ellipse, rgba(140,60,230,0.14) 0%, transparent 65%);
-      top: 10%; right: 5%;
-      animation: ad4 26s ease-in-out infinite;
-    }
-    .aorb-5 {
-      width: 400px; height: 350px;
-      background: radial-gradient(ellipse, rgba(230,100,60,0.08) 0%, transparent 65%);
-      bottom: 20%; left: 10%;
-      animation: ad5 18s ease-in-out infinite;
-    }
-
-    @keyframes ad1 { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(90px,70px) scale(1.18)} 70%{transform:translate(-40px,100px) scale(0.88)} }
-    @keyframes ad2 { 0%,100%{transform:translate(0,0) scale(1)} 35%{transform:translate(-80px,-60px) scale(1.12)} 65%{transform:translate(60px,-90px) scale(0.93)} }
-    @keyframes ad3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-70px,50px) scale(1.25)} }
-    @keyframes ad4 { 0%,100%{transform:translate(0,0) scale(1)} 45%{transform:translate(-50px,80px) scale(1.1)} 75%{transform:translate(40px,30px) scale(0.9)} }
-    @keyframes ad5 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(80px,-60px) scale(1.15)} }
-
-    /* ── Grid overlay ── */
-    .grid-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
+    /* Very faint grid */
+    .grid-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background-image:
-        linear-gradient(rgba(168,200,232,0.016) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(168,200,232,0.016) 1px, transparent 1px);
-      background-size: 64px 64px;
+        linear-gradient(rgba(168,200,232,0.011) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168,200,232,0.011) 1px, transparent 1px);
+      background-size: 72px 72px;
     }
 
-    section { position: relative; z-index: 2; }
+    nav, section, footer { position: relative; z-index: 2; }
 
     /* ── Nav ── */
     nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 48px;
-      height: 60px;
-      background: rgba(5,9,15,0.65);
-      backdrop-filter: blur(24px) saturate(1.6);
-      -webkit-backdrop-filter: blur(24px) saturate(1.6);
-      border-bottom: 1px solid rgba(168,200,232,0.07);
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 52px; height: 58px;
+      background: rgba(7,9,15,0.72);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
     }
 
-    .nav-logo {
-      font-size: 15px; font-weight: 800; letter-spacing: -0.3px; color: var(--text);
-    }
+    .nav-logo { font-size: 15px; font-weight: 800; letter-spacing: -0.3px; color: var(--text); }
 
     .nav-links { display: flex; gap: 32px; align-items: center; }
-    .nav-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    .nav-links a { font-size: 13px; color: var(--muted2); text-decoration: none; transition: color 0.15s; }
     .nav-links a:hover { color: var(--text); }
 
     .nav-cta {
-      background: var(--accent);
-      color: #05090f;
-      padding: 7px 18px;
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-      box-shadow: 0 0 20px rgba(168,200,232,0.2);
+      background: var(--text); color: var(--bg);
+      padding: 7px 18px; border-radius: 9999px;
+      font-size: 12px; font-weight: 700; text-decoration: none;
+      transition: opacity 0.15s, transform 0.1s;
     }
-    .nav-cta:hover { background: var(--accent2); color: #05090f; transform: translateY(-1px); box-shadow: 0 0 30px rgba(168,200,232,0.35); }
+    .nav-cta:hover { opacity: 0.85; transform: translateY(-1px); }
 
-    /* ── Hero ── */
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 120px 48px 100px;
-      position: relative;
+    /* ── Shared ── */
+    .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 20px; display: block;
     }
 
-    .hero::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 5%; right: 5%;
+    .s-divider {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(168,200,232,0.12), rgba(196,160,244,0.1), rgba(168,200,232,0.12), transparent);
-      box-shadow: 0 0 60px rgba(168,200,232,0.08);
-    }
-
-    .hero-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: center;
-      max-width: 1100px;
-      width: 100%;
-    }
-
-    .hero-eyebrow {
-      display: inline-block;
-      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 28px;
-      background: rgba(168,200,232,0.07);
-      border: 1px solid rgba(168,200,232,0.14);
-      padding: 6px 14px;
-      border-radius: 9999px;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.15s ease forwards;
-    }
-
-    .hero h1 {
-      font-size: clamp(36px, 4.8vw, 66px);
-      font-weight: 800;
-      letter-spacing: -2px;
-      line-height: 1.05;
-      margin-bottom: 26px;
-    }
-
-    .hw {
-      display: inline-block;
-      opacity: 0;
-      transform: translateY(24px);
-      animation: wordIn 0.85s calc(0.3s + var(--hd, 0s)) cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes wordIn {
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .hw.grad {
-      animation:
-        wordIn 0.85s calc(0.3s + var(--hd, 0s)) cubic-bezier(0.16, 1, 0.3, 1) forwards,
-        gradShift 8s ease infinite;
-    }
-
-    .grad {
-      background: linear-gradient(135deg, var(--accent) 0%, #7ab8e8 20%, var(--purple) 45%, var(--rose) 65%, var(--warm) 85%, var(--accent) 100%);
-      background-size: 300% 300%;
-      animation: gradShift 8s ease infinite;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    @keyframes gradShift {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .hero-sub {
-      font-size: clamp(14px, 1.7vw, 17px);
-      color: var(--muted);
-      max-width: 460px;
-      line-height: 1.8;
-      margin-bottom: 40px;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.7s ease forwards;
-    }
-
-    .hero-cta {
-      display: flex; gap: 14px; flex-wrap: wrap;
-      margin-bottom: 40px;
-      opacity: 0;
-      animation: fadeUp 0.8s 0.85s ease forwards;
+      background: linear-gradient(90deg, transparent, var(--border) 25%, var(--border) 75%, transparent);
     }
 
     .btn-primary {
-      background: var(--accent);
-      color: #05090f;
-      padding: 14px 32px;
-      border-radius: 9999px;
-      font-size: 14px;
-      font-weight: 800;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
-      box-shadow: 0 0 36px rgba(168,200,232,0.28);
+      background: var(--text); color: var(--bg);
+      padding: 13px 30px; border-radius: 9999px;
+      font-size: 14px; font-weight: 700; text-decoration: none; display: inline-block;
+      transition: opacity 0.15s, transform 0.12s;
     }
-    .btn-primary:hover {
-      background: var(--accent2);
-      transform: translateY(-2px);
-      box-shadow: 0 0 60px rgba(168,200,232,0.45);
-    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-2px); }
 
     .btn-ghost {
-      background: transparent;
-      color: var(--accent);
-      padding: 14px 32px;
-      border-radius: 9999px;
-      font-size: 14px;
-      font-weight: 700;
-      text-decoration: none;
-      border: 1px solid rgba(168,200,232,0.2);
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+      color: var(--muted2); padding: 13px 30px; border-radius: 9999px;
+      font-size: 14px; font-weight: 600; text-decoration: none; display: inline-block;
+      border: 1px solid var(--border);
+      transition: color 0.15s, border-color 0.15s, transform 0.12s;
     }
-    .btn-ghost:hover {
-      border-color: var(--accent);
-      background: rgba(168,200,232,0.06);
-      transform: translateY(-2px);
-    }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
 
-    .platforms-row {
-      display: flex; gap: 8px; flex-wrap: wrap;
-      opacity: 0;
-      animation: fadeUp 0.8s 1s ease forwards;
-    }
-
-    .platform-pill {
-      font-size: 11px; font-weight: 600;
-      color: var(--muted);
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--faint);
-      padding: 5px 12px;
-      border-radius: 9999px;
-      transition: color 0.15s, border-color 0.15s, background 0.15s;
-    }
-    .platform-pill:hover {
-      color: var(--accent);
-      border-color: rgba(168,200,232,0.2);
-      background: rgba(168,200,232,0.04);
-    }
-
-    /* ── Hero visual ── */
-    .hero-visual {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      animation: fadeUp 1s 0.55s ease forwards;
-    }
-
-    .notif-toast {
-      position: absolute;
-      top: -8px; left: -10px;
-      background: rgba(8,16,26,0.96);
-      backdrop-filter: blur(24px);
-      border: 1px solid rgba(244,160,181,0.24);
-      border-radius: 14px;
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 20px rgba(244,160,181,0.06);
-      white-space: nowrap;
-      z-index: 3;
-      animation: toastIn 0.55s 1.4s both, toastFloat 5.5s 2s ease-in-out infinite;
-    }
-
-    .notif-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--rose);
-      flex-shrink: 0;
-      box-shadow: 0 0 6px rgba(244,160,181,0.6);
-      animation: dotPulse 1.5s ease-in-out infinite;
-    }
-
-    @keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
-    @keyframes toastIn  { from{opacity:0;transform:translateY(-14px) scale(0.93)} to{opacity:1;transform:translateY(0) scale(1)} }
-    @keyframes toastFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-
-    /* Mockup */
-    .ext-mockup {
-      background: rgba(8,16,26,0.94);
-      backdrop-filter: blur(32px);
-      -webkit-backdrop-filter: blur(32px);
-      border: 1px solid rgba(168,200,232,0.14);
-      border-radius: 24px;
-      padding: 24px;
-      width: 310px;
-      box-shadow:
-        0 50px 100px rgba(0,0,0,0.7),
-        0 0 0 1px rgba(168,200,232,0.05),
-        inset 0 1px 0 rgba(168,200,232,0.1);
-      animation: mockFloat 7s ease-in-out infinite;
-      position: relative;
-      z-index: 1;
-      transform-style: preserve-3d;
-      will-change: transform;
-      transition: box-shadow 0.3s;
-    }
-
-    @keyframes mockFloat {
-      0%,100%{transform:translateY(0) rotate(0deg)}
-      33%{transform:translateY(-12px) rotate(0.5deg)}
-      66%{transform:translateY(-7px) rotate(-0.4deg)}
-    }
-
-    .mockup-chrome { display: flex; gap: 6px; margin-bottom: 18px; }
-    .mockup-chrome span { width: 10px; height: 10px; border-radius: 50%; display: block; }
-    .mockup-chrome span:nth-child(1) { background: #ff5f57; box-shadow: 0 0 8px rgba(255,95,87,0.4); }
-    .mockup-chrome span:nth-child(2) { background: #febc2e; box-shadow: 0 0 8px rgba(254,188,46,0.3); }
-    .mockup-chrome span:nth-child(3) { background: #28c840; box-shadow: 0 0 8px rgba(40,200,64,0.3); }
-
-    .mockup-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      padding-bottom: 14px;
-      border-bottom: 1px solid rgba(168,200,232,0.07);
-    }
-
-    .mockup-brand { font-size: 13px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
-
-    .mockup-platform {
-      font-size: 10px; font-weight: 700;
-      color: var(--accent);
-      background: rgba(168,200,232,0.08);
-      border: 1px solid rgba(168,200,232,0.13);
-      padding: 3px 10px;
-      border-radius: 9999px;
-    }
-
-    .mockup-section-label {
-      font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 10px;
-    }
-
-    .mockup-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
-
-    .mockup-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 10px;
-      border-radius: 11px;
-      background: rgba(255,255,255,0.025);
-      border: 1px solid rgba(255,255,255,0.04);
-      transition: background 0.15s;
-    }
-    .mockup-row:hover { background: rgba(255,255,255,0.05); }
-
-    .mockup-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; }
-
-    .mockup-info { flex: 1; min-width: 0; }
-    .mockup-name { display: block; font-size: 11px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mockup-sub  { display: block; font-size: 9px; color: var(--muted); margin-top: 2px; }
-
-    .mockup-unfollow {
-      font-size: 9px; font-weight: 700;
-      color: var(--rose);
-      border: 1px solid rgba(244,160,181,0.22);
-      padding: 3px 8px;
-      border-radius: 9999px;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .mockup-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      padding-top: 14px;
-      border-top: 1px solid rgba(168,200,232,0.07);
-    }
-
-    .mockup-new { font-size: 10px; font-weight: 700; color: var(--sage); }
-
-    .mockup-scan-btn {
-      font-size: 10px; font-weight: 700;
-      color: var(--accent);
-      background: rgba(168,200,232,0.09);
-      border: 1px solid rgba(168,200,232,0.16);
-      padding: 5px 12px;
-      border-radius: 9999px;
-      cursor: pointer;
-    }
-
-    .streak-badge {
-      position: absolute;
-      bottom: -20px; right: -20px;
-      background: rgba(245,215,142,0.08);
-      border: 1px solid rgba(245,215,142,0.2);
-      backdrop-filter: blur(20px);
-      border-radius: 13px;
-      padding: 9px 14px;
-      font-size: 11px; font-weight: 700;
-      color: var(--warm);
-      white-space: nowrap;
-      z-index: 3;
-      box-shadow: 0 0 20px rgba(245,215,142,0.08);
-      animation: toastIn 0.55s 2s both, streakFloat 7.5s 2.5s ease-in-out infinite;
-    }
-
-    .milestone-badge {
-      position: absolute;
-      top: 40%; left: -30px;
-      background: rgba(196,160,244,0.08);
-      border: 1px solid rgba(196,160,244,0.2);
-      backdrop-filter: blur(20px);
-      border-radius: 13px;
-      padding: 9px 14px;
-      font-size: 11px; font-weight: 700;
-      color: var(--purple);
-      white-space: nowrap;
-      z-index: 3;
-      box-shadow: 0 0 20px rgba(196,160,244,0.08);
-      animation: toastIn 0.55s 2.5s both, milestoneFloat 8s 3s ease-in-out infinite;
-    }
-
-    @keyframes streakFloat   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
-    @keyframes milestoneFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
-
-    /* ── Scroll reveal ── */
+    /* ── Reveal ── */
     .reveal {
-      opacity: 0;
-      transform: translateY(36px) scale(0.975);
-      transition: opacity 0.95s ease, transform 0.95s ease;
+      opacity: 0; transform: translateY(32px);
+      transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1);
     }
-    .reveal.visible { opacity: 1; transform: translateY(0) scale(1); }
-    .reveal-delay-1 { transition-delay: 0.1s; }
-    .reveal-delay-2 { transition-delay: 0.22s; }
-    .reveal-delay-3 { transition-delay: 0.34s; }
-    .reveal-delay-4 { transition-delay: 0.46s; }
+    .reveal.visible { opacity: 1; transform: none; }
+    .d1 { transition-delay: 0.1s; }
+    .d2 { transition-delay: 0.22s; }
+    .d3 { transition-delay: 0.34s; }
+    .d4 { transition-delay: 0.46s; }
 
-    /* ── Section typography ── */
-    .section-eyebrow {
-      font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-      color: var(--accent); text-align: center; margin-bottom: 16px;
-    }
-    .section-title {
-      font-size: clamp(28px, 4vw, 50px); font-weight: 800; letter-spacing: -1.5px;
-      line-height: 1.1; text-align: center; margin-bottom: 16px;
-    }
-    .section-sub {
-      font-size: 16px; color: var(--muted); text-align: center;
-      max-width: 480px; margin: 0 auto 64px; line-height: 1.7;
+    /* ── HERO ── */
+    .s-hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 140px 52px 100px; text-align: center;
     }
 
-    /* ── Stats bar ── */
-    .stats-bar {
-      display: flex;
-      justify-content: center;
-      gap: 72px;
-      flex-wrap: wrap;
-      padding: 72px 24px;
-      border-top: 1px solid rgba(168,200,232,0.06);
-      border-bottom: 1px solid rgba(168,200,232,0.06);
-      position: relative;
-      z-index: 2;
+    .hero-inner { max-width: 860px; }
+
+    .hero-inner h1 {
+      font-size: clamp(3.6rem, 9vw, 8.4rem);
+      font-weight: 800; letter-spacing: -0.045em; line-height: 1.01;
+      margin-bottom: 28px;
     }
 
-    .stat-item { text-align: center; }
+    /* word-by-word stagger */
+    .hw {
+      display: inline-block; opacity: 0; transform: translateY(48px);
+      animation: wordIn 0.95s var(--hd, 0s) cubic-bezier(0.16,1,0.3,1) forwards;
+    }
 
-    .stat-num {
-      font-size: 42px; font-weight: 800; letter-spacing: -2px;
-      color: var(--text);
-      font-variant-numeric: tabular-nums;
-      background: linear-gradient(180deg, var(--text) 0%, rgba(232,234,235,0.7) 100%);
+    @keyframes wordIn { to { opacity: 1; transform: translateY(0); } }
+
+    .hero-hl {
+      background: linear-gradient(135deg, #a8c8e8 0%, #c4a0f4 45%, #f4a0b5 100%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
 
-    .stat-label { font-size: 12px; color: var(--muted); margin-top: 8px; letter-spacing: 0.2px; }
-
-    /* ── How it works ── */
-    .how-section { padding: 150px 24px; }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2px;
-      max-width: 920px;
-      margin: 0 auto;
-      border-radius: 20px;
-      overflow: hidden;
-      background: rgba(168,200,232,0.04);
+    .hero-sub {
+      font-size: clamp(1rem, 1.8vw, 1.15rem); color: var(--muted2); line-height: 1.7;
+      max-width: 520px; margin: 0 auto 40px;
+      opacity: 0; animation: wordIn 0.9s 0.65s cubic-bezier(0.16,1,0.3,1) forwards;
     }
 
-    .step {
-      background: var(--surface);
-      padding: 48px 38px;
-      transition: background 0.25s;
-      position: relative;
-      overflow: hidden;
+    .hero-cta {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 52px;
+      opacity: 0; animation: wordIn 0.9s 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
     }
 
-    .step::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% -20%, rgba(168,200,232,0.06) 0%, transparent 60%);
-      opacity: 0;
-      transition: opacity 0.4s;
+    .platforms-row {
+      display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap;
+      opacity: 0; animation: wordIn 0.9s 0.95s cubic-bezier(0.16,1,0.3,1) forwards;
     }
 
-    .step:hover { background: var(--surface2); }
-    .step:hover::before { opacity: 1; }
+    .platforms-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
-    .step-num-big {
-      font-size: 80px; font-weight: 800; letter-spacing: -5px;
-      color: rgba(168,200,232,0.055); line-height: 1;
-      margin-bottom: 18px; user-select: none;
+    .p-icon { width: 18px; height: 18px; opacity: 0.4; transition: opacity 0.2s; flex-shrink: 0; }
+    .p-icon:hover { opacity: 0.8; }
+    .p-icon svg { width: 100%; height: 100%; display: block; }
+
+    /* ── PROBLEM ── */
+    .s-problem {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 100px 52px; text-align: center;
     }
 
-    .step-label { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); opacity: 0.6; margin-bottom: 10px; }
-    .step-title { font-size: 17px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 10px; }
-    .step-desc  { font-size: 13px; color: var(--muted); line-height: 1.75; }
+    .problem-lines { display: flex; flex-direction: column; }
 
-    /* ── Features ── */
-    .features-section { padding: 150px 24px; }
+    .problem-line {
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      font-weight: 700; letter-spacing: -0.035em; line-height: 1.18;
+      color: rgba(238,240,243,0.15);
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.65s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.65s cubic-bezier(0.16,1,0.3,1),
+                  color 0.65s ease;
+    }
+    .problem-line.visible { opacity: 1; transform: none; color: var(--text); }
+    .problem-line.accent.visible { color: var(--accent); }
+    .problem-gap { height: 1em; }
 
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-      max-width: 1020px;
-      margin: 0 auto;
+    /* ── PRODUCT ── */
+    .s-product { padding: 130px 0; }
+
+    .product-grid {
+      max-width: 1100px; margin: 0 auto; padding: 0 52px;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
     }
 
-    .feature-card {
-      background: var(--surface);
-      border: 1px solid rgba(168,200,232,0.06);
-      border-radius: 22px;
-      padding: 34px;
-      transition: background 0.25s, border-color 0.3s, transform 0.25s, box-shadow 0.3s;
-      position: relative;
-      overflow: hidden;
+    .product-text h2 {
+      font-size: clamp(2rem, 3.8vw, 3.5rem);
+      font-weight: 800; letter-spacing: -0.04em; line-height: 1.08; margin-bottom: 20px;
     }
 
-    /* Holographic rotating border */
-    .feature-card::after {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 23px;
-      background: conic-gradient(
-        from var(--holo-angle),
-        var(--accent) 0%,
-        var(--purple) 18%,
-        var(--rose) 36%,
-        var(--warm) 54%,
-        var(--sage) 72%,
-        var(--accent) 90%
-      );
-      opacity: 0;
-      z-index: -1;
-      transition: opacity 0.35s;
-      animation: holoSpin 5s linear infinite;
+    .product-text p { font-size: 15px; color: var(--muted2); line-height: 1.75; margin-bottom: 28px; }
+
+    .feature-bullets { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+    .feature-bullets li { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted2); }
+    .fb-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); opacity: 0.6; flex-shrink: 0; }
+
+    /* Mockup */
+    .mockup-wrap { position: relative; display: flex; justify-content: center; }
+
+    .mockup-glow {
+      position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);
+      width: 260px; height: 80px;
+      background: radial-gradient(ellipse, rgba(168,200,232,0.14) 0%, transparent 70%);
+      filter: blur(16px); pointer-events: none;
     }
 
-    @keyframes holoSpin { to { --holo-angle: 360deg; } }
-
-    /* Top shimmer sweep */
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(196,160,244,0.5), rgba(168,200,232,0.4), transparent);
-      transform: scaleX(0);
-      transition: transform 0.45s ease;
+    .ext-mockup {
+      background: rgba(8,14,24,0.95);
+      border: 1px solid rgba(168,200,232,0.12);
+      border-radius: 20px; width: 300px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(168,200,232,0.08);
+      position: relative; z-index: 1;
     }
 
-    .feature-card:hover {
-      background: var(--surface2);
-      transform: translateY(-5px);
-    }
-    .feature-card:hover::before { transform: scaleX(1); }
-    .feature-card:hover::after  { opacity: 0.35; }
+    .mockup-chrome { display: flex; gap: 6px; padding: 12px 14px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .mockup-chrome span { width: 9px; height: 9px; border-radius: 50%; display: block; }
+    .mockup-chrome span:nth-child(1) { background: rgba(255,95,87,0.7); }
+    .mockup-chrome span:nth-child(2) { background: rgba(254,188,46,0.6); }
+    .mockup-chrome span:nth-child(3) { background: rgba(40,200,64,0.6); }
 
-    .feature-card[data-glow="blue"]:hover  { box-shadow: 0 24px 70px rgba(168,200,232,0.1); }
-    .feature-card[data-glow="green"]:hover { box-shadow: 0 24px 70px rgba(134,201,168,0.1); }
-    .feature-card[data-glow="rose"]:hover  { box-shadow: 0 24px 70px rgba(244,160,181,0.1); }
-    .feature-card[data-glow="warm"]:hover  { box-shadow: 0 24px 70px rgba(245,215,142,0.1); }
+    .mockup-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px 8px; }
+    .mockup-brand { font-size: 12px; font-weight: 800; letter-spacing: -0.2px; }
+    .mockup-platform { font-size: 10px; font-weight: 700; color: var(--accent); background: rgba(168,200,232,0.08); border: 1px solid rgba(168,200,232,0.12); padding: 3px 9px; border-radius: 9999px; }
+    .mockup-section-label { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0 14px 8px; }
+    .mockup-rows { padding: 0 10px 10px; display: flex; flex-direction: column; gap: 3px; }
+    .mockup-row { display: flex; align-items: center; gap: 9px; padding: 8px 6px; border-radius: 9px; transition: background 0.15s; }
+    .mockup-row:hover { background: rgba(255,255,255,0.04); }
+    .mockup-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+    .mockup-info { flex: 1; min-width: 0; }
+    .mockup-name { display: block; font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mockup-sub { display: block; font-size: 9px; color: var(--muted); margin-top: 1px; }
+    .mockup-unfollow { font-size: 9px; font-weight: 700; color: var(--rose); border: 1px solid rgba(244,160,181,0.2); padding: 3px 8px; border-radius: 9999px; white-space: nowrap; }
+    .mockup-footer { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px 13px; border-top: 1px solid rgba(255,255,255,0.05); }
+    .mockup-new { font-size: 10px; font-weight: 700; color: var(--sage); }
+    .mockup-scan-btn { font-size: 10px; font-weight: 700; color: var(--bg); background: var(--accent); border: none; border-radius: 9999px; padding: 4px 10px; cursor: pointer; }
 
-    .feature-card.large { grid-column: span 2; }
-    @media (max-width: 640px) { .feature-card.large { grid-column: span 1; } }
-
-    .feature-icon  { font-size: 34px; margin-bottom: 18px; display: block; }
-    .feature-name  { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; margin-bottom: 8px; }
-    .feature-desc  { font-size: 13px; color: var(--muted); line-height: 1.75; }
-
-    .feature-tag {
-      display: inline-block; margin-top: 16px;
-      font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
-      padding: 3px 10px; border-radius: 9999px;
-    }
-    .tag-free { background: rgba(134,201,168,0.1); color: var(--sage); }
-    .tag-pro  { background: rgba(245,215,142,0.1); color: var(--warm); }
-
-    /* ── Platforms ── */
-    .platforms-section { padding: 150px 24px; text-align: center; }
-
-    .platforms-showcase {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      max-width: 740px;
-      margin: 0 auto;
+    /* Growth chart card */
+    .chart-card {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 22px;
+      margin-top: 16px; width: 300px; margin-left: auto; margin-right: auto;
     }
 
-    .platform-card {
-      background: var(--surface);
-      border: 1px solid rgba(168,200,232,0.06);
-      border-radius: 22px;
-      padding: 30px 34px;
-      min-width: 112px;
-      text-align: center;
-      transition: background 0.25s, transform 0.3s, border-color 0.25s, box-shadow 0.3s;
-      cursor: default;
-      position: relative;
-      overflow: hidden;
+    .cc-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+    .cc-title { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted2); }
+    .cc-val { font-size: 14px; font-weight: 800; color: var(--sage); }
+
+    .cc-svg { width: 100%; display: block; }
+
+    .cc-foot { display: flex; justify-content: space-between; margin-top: 10px; }
+    .cc-date { font-size: 10px; color: var(--muted); }
+
+    /* ── STATS ── */
+    .s-stats { padding: 100px 0; }
+
+    .stats-row {
+      max-width: 1100px; margin: 0 auto; padding: 0 52px;
+      display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr;
+      align-items: center;
     }
 
-    .platform-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transition: opacity 0.3s;
+    .stat-vline { height: 56px; background: var(--border); align-self: center; }
+
+    .stat-block { padding: 36px 44px; text-align: center; }
+
+    .stat-big {
+      font-size: clamp(3rem, 6.5vw, 5.8rem);
+      font-weight: 800; letter-spacing: -0.05em; line-height: 1;
+      margin-bottom: 10px;
+      background: linear-gradient(180deg, var(--text) 0%, rgba(238,240,243,0.65) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
 
-    .platform-card:hover { background: var(--surface2); transform: translateY(-10px) scale(1.05); }
-    .platform-card:hover::before { opacity: 1; }
+    .stat-desc { font-size: 13px; color: var(--muted2); line-height: 1.55; }
 
-    .pc-x:hover       { border-color: rgba(231,233,234,0.2); box-shadow: 0 20px 50px rgba(231,233,234,0.06); }
-    .pc-insta:hover   { border-color: rgba(225,48,108,0.25);  box-shadow: 0 20px 50px rgba(225,48,108,0.07); }
-    .pc-threads:hover { border-color: rgba(168,200,232,0.2);  box-shadow: 0 20px 50px rgba(168,200,232,0.06); }
-    .pc-tiktok:hover  { border-color: rgba(105,201,208,0.25); box-shadow: 0 20px 50px rgba(105,201,208,0.07); }
-    .pc-bluesky:hover { border-color: rgba(32,139,254,0.25);  box-shadow: 0 20px 50px rgba(32,139,254,0.07); }
-    .pc-rednote:hover { border-color: rgba(239,68,68,0.25);   box-shadow: 0 20px 50px rgba(239,68,68,0.07); }
+    /* ── FEATURES ── */
+    .s-features { padding: 120px 0; }
 
-    .platform-logo { width: 38px; height: 38px; margin: 0 auto 14px; display: flex; align-items: center; justify-content: center; }
-    .platform-logo svg { width: 100%; height: 100%; }
-    .platform-name  { font-size: 13px; font-weight: 700; color: var(--text); }
-
-    /* ── Pricing ── */
-    .pricing-section { padding: 150px 24px; }
-
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
-      max-width: 680px;
-      margin: 0 auto;
+    .feat-header {
+      max-width: 1100px; margin: 0 auto 52px; padding: 0 52px;
     }
 
-    .pricing-card {
-      background: var(--surface);
-      border: 1px solid rgba(168,200,232,0.07);
-      border-radius: 26px;
-      padding: 42px;
-      transition: transform 0.25s;
+    .feat-header h2 {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800; letter-spacing: -0.04em; line-height: 1.1;
     }
 
-    .pricing-card.pro {
-      border-color: rgba(168,200,232,0.22);
-      background: linear-gradient(160deg, #0e1d2e 0%, #09131f 100%);
-      box-shadow: 0 0 100px rgba(168,200,232,0.07), inset 0 1px 0 rgba(168,200,232,0.1);
+    .feat-grid {
+      max-width: 1100px; margin: 0 auto; padding: 0 52px;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      background: var(--border); gap: 1px;
+      border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
     }
 
-    .pricing-card:hover { transform: translateY(-5px); }
-
-    .pricing-tier {
-      font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 16px;
+    .feat {
+      background: var(--bg); padding: 30px 26px;
+      transition: background 0.2s;
     }
-    .pricing-card.pro .pricing-tier { color: var(--accent); }
+    .feat:hover { background: rgba(168,200,232,0.025); }
 
-    .pricing-price { font-size: 52px; font-weight: 800; letter-spacing: -2.5px; color: var(--text); margin-bottom: 4px; }
-    .pricing-sub   { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+    .feat-name { font-size: 14px; font-weight: 700; letter-spacing: -0.15px; margin-bottom: 8px; }
+    .feat-desc { font-size: 12px; color: var(--muted2); line-height: 1.65; margin-bottom: 14px; }
 
-    .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 13px; margin-bottom: 32px; }
-
-    .pricing-features li {
-      font-size: 13px; color: var(--muted);
-      display: flex; align-items: center; gap: 10px;
+    .feat-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 4px; display: inline-block;
     }
-    .pricing-features li::before { content: '✓'; color: var(--sage); font-weight: 700; font-size: 12px; flex-shrink: 0; }
-    .pricing-features li.pro-item { color: var(--text); }
+    .b-free { background: rgba(134,201,168,0.1); color: var(--sage); }
+    .b-pro  { background: rgba(168,200,232,0.1); color: var(--accent); }
 
-    .btn-pricing {
-      display: block; width: 100%; padding: 14px;
-      border-radius: 9999px; font-size: 13px; font-weight: 700;
-      text-align: center; text-decoration: none; border: none; cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-    .btn-pricing:hover { opacity: 0.85; transform: translateY(-1px); }
-    .btn-pricing.free    { background: var(--surface2); border: 1px solid var(--faint); color: var(--accent); }
-    .btn-pricing.pro-btn { background: var(--accent); color: #05090f; box-shadow: 0 0 30px rgba(168,200,232,0.2); }
+    /* ── PRICING ── */
+    .s-pricing { padding: 120px 0; }
 
-    /* ── Final CTA ── */
-    .cta-section { padding: 180px 24px; text-align: center; }
+    .pricing-header { max-width: 1100px; margin: 0 auto 52px; padding: 0 52px; }
+    .pricing-header h2 { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -0.04em; }
 
-    .cta-glow {
-      position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 800px; height: 500px;
-      background: radial-gradient(ellipse, rgba(140,60,230,0.07) 0%, rgba(168,200,232,0.06) 40%, transparent 70%);
-      pointer-events: none;
+    .pricing-wrap {
+      max-width: 740px; margin: 0 auto; padding: 0 52px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
     }
 
-    .cta-pulse-wrap { position: relative; display: inline-block; }
+    .p-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 36px 32px;
+    }
 
-    .cta-pulse-wrap::before,
-    .cta-pulse-wrap::after {
-      content: '';
-      position: absolute;
-      inset: -8px;
-      border-radius: 9999px;
-      border: 1.5px solid rgba(168,200,232,0.28);
+    .p-card.pro { border-color: rgba(168,200,232,0.2); background: rgba(168,200,232,0.035); }
+
+    .p-tier { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted2); margin-bottom: 8px; }
+    .p-tier.pro { color: var(--accent); }
+    .p-price { font-size: 3.4rem; font-weight: 800; letter-spacing: -0.05em; line-height: 1; margin-bottom: 6px; }
+    .p-sub { font-size: 12px; color: var(--muted2); margin-bottom: 26px; }
+
+    .p-list { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .p-list li { font-size: 13px; color: var(--muted2); display: flex; gap: 10px; }
+    .p-list li::before { content: '—'; color: var(--muted); font-size: 11px; flex-shrink: 0; margin-top: 2px; }
+    .p-list li.pro-item { color: var(--text); }
+    .p-list li.pro-item::before { content: '✦'; color: var(--accent); font-size: 9px; margin-top: 3px; }
+
+    .p-btn {
+      display: block; text-align: center; text-decoration: none;
+      padding: 11px; border-radius: 9999px; font-size: 13px; font-weight: 700;
+      transition: opacity 0.15s, transform 0.12s;
+    }
+    .p-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .p-btn-free { border: 1px solid var(--border); color: var(--text); }
+    .p-btn-pro  { background: var(--accent); color: var(--bg); }
+
+    /* ── CTA ── */
+    .s-cta {
+      min-height: 70vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 100px 52px; text-align: center;
+    }
+
+    .cta-inner { position: relative; }
+
+    .cta-inner h2 {
+      font-size: clamp(3rem, 8vw, 7.5rem);
+      font-weight: 800; letter-spacing: -0.05em; line-height: 1.0;
+      margin-bottom: 40px;
+    }
+
+    .cta-sub { font-size: 13px; color: var(--muted2); margin-top: 18px; }
+
+    /* Pulse rings on CTA button */
+    .pulse-wrap { position: relative; display: inline-block; }
+    .pulse-wrap::before, .pulse-wrap::after {
+      content: ''; position: absolute; inset: -10px; border-radius: 9999px;
+      border: 1.5px solid rgba(168,200,232,0.22);
       animation: pulseRing 2.8s ease-out infinite;
     }
-    .cta-pulse-wrap::after { animation-delay: 1.4s; }
-
+    .pulse-wrap::after { animation-delay: 1.4s; }
     @keyframes pulseRing {
       0%   { transform: scale(1); opacity: 0.5; }
-      100% { transform: scale(1.8); opacity: 0; }
+      100% { transform: scale(1.9); opacity: 0; }
     }
 
-    /* ── Footer ── */
+    /* ── FOOTER ── */
     footer {
-      padding: 40px 48px;
+      padding: 36px 52px;
       display: flex; justify-content: space-between; align-items: center;
       flex-wrap: wrap; gap: 16px;
-      border-top: 1px solid rgba(168,200,232,0.06);
-      position: relative; z-index: 2;
+      border-top: 1px solid var(--border);
     }
 
-    .footer-logo { font-size: 14px; font-weight: 800; color: var(--muted); }
+    .footer-logo { font-size: 14px; font-weight: 800; color: var(--muted2); }
     .footer-links { display: flex; gap: 24px; }
     .footer-links a { font-size: 12px; color: var(--muted); text-decoration: none; transition: color 0.15s; }
     .footer-links a:hover { color: var(--text); }
 
-    /* ── Divider ── */
-    .divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(168,200,232,0.07), transparent);
-      margin: 0 48px;
-      position: relative; z-index: 2;
-    }
-
-    /* ── Animations ── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(28px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes float {
-      0%,100% { transform: translateY(0); }
-      50%      { transform: translateY(-16px); }
-    }
-
-    .floating { animation: float 4.5s ease-in-out infinite; }
-
-    /* ── Mobile ── */
+    /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
-      .hero-inner { grid-template-columns: 1fr; gap: 64px; }
-      .hero h1, .hero-eyebrow, .hero-sub, .hero-cta, .platforms-row { text-align: center; justify-content: center; }
-      .hero-sub { max-width: 100%; }
-      .notif-toast { left: 50%; top: -52px; animation: toastIn 0.55s 1.4s both; transform: translateX(-50%); }
-      .streak-badge { animation: toastIn 0.55s 2s both; }
-      .milestone-badge { display: none; }
+      .product-grid { grid-template-columns: 1fr; gap: 56px; }
+      .product-text { order: 2; }
+      .product-visual { order: 1; }
+      .stats-row { grid-template-columns: 1fr; gap: 0; }
+      .stat-vline { display: none; }
+      .feat-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    @media (max-width: 700px) {
-      .steps { grid-template-columns: 1fr; border-radius: 18px; }
-    }
-
-    @media (max-width: 600px) {
-      nav { padding: 0 20px; }
-      .nav-links { gap: 16px; }
-      .hero { padding: 100px 20px 60px; }
-      footer { padding: 32px 20px; flex-direction: column; text-align: center; }
+    @media (max-width: 640px) {
+      nav { padding: 0 24px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .s-hero, .s-problem, .s-cta { padding-left: 24px; padding-right: 24px; }
+      .product-grid, .stats-row, .feat-header, .feat-grid, .pricing-header, .pricing-wrap { padding-left: 24px; padding-right: 24px; }
+      .feat-grid { grid-template-columns: 1fr; border-radius: 14px; }
+      .pricing-wrap { grid-template-columns: 1fr; }
+      footer { padding: 28px 24px; flex-direction: column; text-align: center; }
       .footer-links { justify-content: center; }
-      .stats-bar { gap: 36px; }
-      .ext-mockup { width: 284px; }
-      .divider { margin: 0 20px; }
     }
 
-    /* ── Mobile performance overrides ─────────────────────────────────────── */
-    /* Animated blur(130px) on large elements forces GPU re-composite every   */
-    /* frame — the single most expensive thing on old Android chips. Freeze   */
-    /* the orbs in place (static blurs are fine; moving ones are not).        */
     @media (hover: none), (max-width: 700px) {
-      .aorb { animation: none !important; }
       .ext-mockup { animation: none !important; }
-      .feature-card::after { animation: none !important; }
-      .hw.grad {
-        animation: wordIn 0.85s calc(0.3s + var(--hd, 0s)) cubic-bezier(0.16,1,0.3,1) forwards !important;
-      }
     }
   </style>
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
-
-<div class="vignette"></div>
-
-<div class="aurora">
-  <div class="aorb aorb-1"></div>
-  <div class="aorb aorb-2"></div>
-  <div class="aorb aorb-3"></div>
-  <div class="aorb aorb-4"></div>
-  <div class="aorb aorb-5"></div>
-</div>
-
-<div class="grid-overlay"></div>
+<div class="bg-glow"></div>
+<div class="grid-bg"></div>
 
 <!-- Nav -->
 <nav>
@@ -917,287 +449,233 @@
   </div>
 </nav>
 
-<!-- Hero -->
-<section class="hero">
+<!-- ── HERO ── -->
+<section class="s-hero">
   <div class="hero-inner">
-
-    <div class="hero-text">
-      <div class="hero-eyebrow">Free Chrome Extension</div>
-      <h1>
-        <span class="hw" style="--hd:0s">Know </span><span class="hw" style="--hd:0.12s">Who</span><br>
-        <span class="hw grad" style="--hd:0.26s">Unfollowed </span><span class="hw grad" style="--hd:0.42s">You.</span>
-      </h1>
-      <p class="hero-sub">Track unfollowers across every major platform. Get notified instantly. Grow smarter — no account needed.</p>
-      <div class="hero-cta">
-        <a href="#" class="btn-primary">Add to Chrome — It's Free</a>
-        <a href="#features" class="btn-ghost">See How It Works</a>
-      </div>
-      <div class="platforms-row">
-        <span class="platform-pill">X</span>
-        <span class="platform-pill">Instagram</span>
-        <span class="platform-pill">Threads</span>
-        <span class="platform-pill">TikTok</span>
-        <span class="platform-pill">Bluesky</span>
-        <span class="platform-pill">RedNote</span>
-      </div>
+    <span class="eyebrow" style="opacity:0;animation:wordIn 0.8s 0.1s cubic-bezier(0.16,1,0.3,1) forwards">Free Chrome Extension</span>
+    <h1>
+      <span class="hw" style="--hd:0.18s">Know who</span><br>
+      <span class="hw hero-hl" style="--hd:0.34s">unfollowed</span><br>
+      <span class="hw" style="--hd:0.5s">you.</span>
+    </h1>
+    <p class="hero-sub">Real-time tracking across X, Instagram, TikTok, Threads, Bluesky, and RedNote. No account needed.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn-primary">Add to Chrome — Free</a>
+      <a href="#features" class="btn-ghost">See How It Works</a>
     </div>
-
-    <div class="hero-visual">
-      <div class="notif-toast">
-        <div class="notif-dot"></div>
-        <span>3 people unfollowed you</span>
-      </div>
-      <div class="ext-mockup" id="tilt-card">
-        <div class="mockup-chrome">
-          <span></span><span></span><span></span>
-        </div>
-        <div class="mockup-header">
-          <span class="mockup-brand">UnfollowSpy</span>
-          <span class="mockup-platform">Instagram</span>
-        </div>
-        <div class="mockup-section-label">Unfollowers</div>
-        <div class="mockup-rows">
-          <div class="mockup-row">
-            <div class="mockup-avatar" style="background:linear-gradient(135deg,#a8c8e8,#6aa8d8)"></div>
-            <div class="mockup-info">
-              <span class="mockup-name">sarah_johnson</span>
-              <span class="mockup-sub">followed you 45d ago · mutual</span>
-            </div>
-            <div class="mockup-unfollow">Unfollow</div>
-          </div>
-          <div class="mockup-row">
-            <div class="mockup-avatar" style="background:linear-gradient(135deg,#f4a0b5,#e07090)"></div>
-            <div class="mockup-info">
-              <span class="mockup-name">cool.dude99</span>
-              <span class="mockup-sub">followed you 12d ago</span>
-            </div>
-            <div class="mockup-unfollow">Unfollow</div>
-          </div>
-          <div class="mockup-row">
-            <div class="mockup-avatar" style="background:linear-gradient(135deg,#86c9a8,#5ab080)"></div>
-            <div class="mockup-info">
-              <span class="mockup-name">tech.creator</span>
-              <span class="mockup-sub">followed you 3d ago</span>
-            </div>
-            <div class="mockup-unfollow">Unfollow</div>
-          </div>
-        </div>
-        <div class="mockup-footer">
-          <span class="mockup-new">+8 new followers</span>
-          <button class="mockup-scan-btn">Scan ↻</button>
-        </div>
-      </div>
-      <div class="streak-badge">🔥 7-day streak</div>
-      <div class="milestone-badge">🎯 1K followers!</div>
-    </div>
-
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- Stats -->
-<div class="stats-bar">
-  <div class="stat-item reveal">
-    <div class="stat-num" data-target="6">0</div>
-    <div class="stat-label">Platforms supported</div>
-  </div>
-  <div class="stat-item reveal reveal-delay-1">
-    <div class="stat-num">Free</div>
-    <div class="stat-label">No account needed</div>
-  </div>
-  <div class="stat-item reveal reveal-delay-2">
-    <div class="stat-num" data-target="100" data-suffix="%">0%</div>
-    <div class="stat-label">Private — data stays on your device</div>
-  </div>
-  <div class="stat-item reveal reveal-delay-3">
-    <div class="stat-num">30s</div>
-    <div class="stat-label">To set up and start scanning</div>
-  </div>
-</div>
-
-<div class="divider"></div>
-
-<!-- How it works -->
-<section class="how-section" id="features">
-  <div class="reveal">
-    <div class="section-eyebrow">How it works</div>
-    <h2 class="section-title">Three steps.<br>That's it.</h2>
-    <p class="section-sub">No accounts, no passwords, no API keys. Just install and scan.</p>
-  </div>
-  <div class="steps">
-    <div class="step reveal reveal-delay-1">
-      <div class="step-num-big">01</div>
-      <div class="step-label">Step 1</div>
-      <div class="step-title">Install the extension</div>
-      <div class="step-desc">Add UnfollowSpy to Chrome in one click. No signup required.</div>
-    </div>
-    <div class="step reveal reveal-delay-2">
-      <div class="step-num-big">02</div>
-      <div class="step-label">Step 2</div>
-      <div class="step-title">Visit your followers page</div>
-      <div class="step-desc">Open any supported platform and click Scan in the extension popup.</div>
-    </div>
-    <div class="step reveal reveal-delay-3">
-      <div class="step-num-big">03</div>
-      <div class="step-label">Step 3</div>
-      <div class="step-title">See who unfollowed</div>
-      <div class="step-desc">Scan again later and the dashboard shows exactly who left since last time.</div>
+    <div class="platforms-row">
+      <span class="platforms-label">Supports</span>
+      <span class="p-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
+      <span class="p-icon"><svg viewBox="0 0 24 24"><defs><linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#feda75"/><stop offset="50%" stop-color="#d62976"/><stop offset="100%" stop-color="#4f5bd5"/></linearGradient></defs><rect x="1" y="1" width="22" height="22" rx="6" fill="url(#ig)"/><circle cx="12" cy="12" r="5.2" fill="none" stroke="white" stroke-width="2"/><circle cx="17.2" cy="6.8" r="1.4" fill="white"/></svg></span>
+      <span class="p-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.19a8.18 8.18 0 004.85 1.56V6.31a4.83 4.83 0 01-1.08-.62z"/></svg></span>
+      <span class="p-icon"><svg viewBox="0 0 24 24" fill="white"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068V12c.012-3.764.932-6.707 2.734-8.747C6.099 1.198 8.895 0 12.503 0c2.916 0 5.332.876 7.18 2.602 1.761 1.648 2.772 3.886 3.003 6.649l-2.957.265c-.352-4.851-3.069-7.26-7.226-7.26-2.776 0-4.957.934-6.483 2.776C4.559 6.698 3.93 9.088 3.921 12c.009 2.968.639 5.394 1.872 7.208 1.527 2.168 3.905 3.281 7.075 3.301 2.765-.016 5.01-.71 6.676-2.063 1.84-1.502 2.755-3.718 2.755-6.637 0-.438-.014-.873-.043-1.302-.03-.43-.071-.857-.123-1.277-1.041.266-1.98.408-2.812.426-.19.004-.377.006-.564.006a6.18 6.18 0 01-4.532-1.787 6.23 6.23 0 01-1.747-4.478c0-1.718.574-3.17 1.707-4.317C15.233 3.887 16.685 3.27 18.3 3.27c1.561 0 2.877.554 3.81 1.603.89 1 1.38 2.38 1.38 3.91 0 1.79-.614 3.266-1.774 4.265-.935.801-2.1 1.23-3.37 1.236-.667 0-1.288-.152-1.803-.442a4.152 4.152 0 01-.52-.362C15.9 14.4 15.162 15 14.26 15.257c-.553.158-1.143.238-1.756.238-1.367 0-2.581-.538-3.424-1.514-.846-.98-1.28-2.33-1.22-3.8.063-1.463.622-2.762 1.574-3.664.954-.9 2.238-1.378 3.72-1.378.805 0 1.556.147 2.228.436l-.003-.012.633-2.83c-.908-.405-1.892-.61-2.923-.61z"/></svg></span>
+      <span class="p-icon"><svg viewBox="0 0 24 24" fill="#0085ff"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.395 4.267-3.913 1.592-6.514-2.498-7.205a9.744 9.744 0 01-.414-.06c.138.017.276.036.414.06 2.671.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg></span>
+      <span class="p-icon"><svg viewBox="0 0 24 24"><rect x="3" y="2" width="15" height="20" rx="2.5" fill="#ff2442"/><rect x="2.5" y="3.5" width="3" height="17" rx="1.5" fill="#cc1133"/><rect x="7.5" y="8" width="7" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/><rect x="7.5" y="11" width="5.5" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/><rect x="7.5" y="14" width="6.5" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/></svg></span>
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
+<div class="s-divider"></div>
 
-<!-- Features -->
-<section class="features-section">
-  <div class="reveal">
-    <div class="section-eyebrow">Features</div>
-    <h2 class="section-title">Everything a creator needs.</h2>
-    <p class="section-sub">Built for people who take their audience seriously.</p>
-  </div>
-  <div class="features-grid">
-    <div class="feature-card large reveal reveal-delay-1" data-glow="blue">
-      <span class="feature-icon">👁</span>
-      <div class="feature-name">Unfollow Tracking</div>
-      <div class="feature-desc">See exactly who unfollowed you since your last scan — with their profile, avatar, and a one-click unfollow button right in the dashboard.</div>
-      <span class="feature-tag tag-free">Free</span>
-    </div>
-    <div class="feature-card reveal reveal-delay-2" data-glow="green">
-      <span class="feature-icon">📈</span>
-      <div class="feature-name">Growth Chart</div>
-      <div class="feature-desc">Visualize your follower count over time across all platforms in one chart.</div>
-      <span class="feature-tag tag-free">Free</span>
-    </div>
-    <div class="feature-card reveal reveal-delay-3" data-glow="rose">
-      <span class="feature-icon">🔁</span>
-      <div class="feature-name">Mutual Tracking</div>
-      <div class="feature-desc">See which unfollowers you still follow back — the "mutuals only" filter shows the ones that sting.</div>
-      <span class="feature-tag tag-free">Free</span>
-    </div>
-    <div class="feature-card reveal reveal-delay-1" data-glow="blue">
-      <span class="feature-icon">⏰</span>
-      <div class="feature-name">Follow-back Reminders</div>
-      <div class="feature-desc">Flags accounts you've followed for 30+ days that never followed back. Clean up your list.</div>
-      <span class="feature-tag tag-free">Free</span>
-    </div>
-    <div class="feature-card reveal reveal-delay-2" data-glow="warm">
-      <span class="feature-icon">🔥</span>
-      <div class="feature-name">Streak Tracking</div>
-      <div class="feature-desc">Get notified when you're on a growth streak. 3 days, 7 days, 30 days — every milestone counted.</div>
-      <span class="feature-tag tag-free">Free</span>
-    </div>
-    <div class="feature-card reveal reveal-delay-3" data-glow="rose">
-      <span class="feature-icon">👻</span>
-      <div class="feature-name">Ghost Follower Detection</div>
-      <div class="feature-desc">Identify suspicious and bot-like followers polluting your count with an AI-powered quality score.</div>
-      <span class="feature-tag tag-pro">Pro</span>
-    </div>
-    <div class="feature-card reveal reveal-delay-1" data-glow="blue">
-      <span class="feature-icon">🕐</span>
-      <div class="feature-name">Best Time to Post</div>
-      <div class="feature-desc">Analyzes your own scan history to find which days your audience grows most. Personalized, not generic.</div>
-      <span class="feature-tag tag-pro">Pro</span>
-    </div>
-    <div class="feature-card reveal reveal-delay-2" data-glow="green">
-      <span class="feature-icon">⚡</span>
-      <div class="feature-name">Auto-Scan Reminders</div>
-      <div class="feature-desc">Daily notifications remind you to scan so you never miss an unfollow event.</div>
-      <span class="feature-tag tag-pro">Pro</span>
-    </div>
+<!-- ── PROBLEM ── -->
+<section class="s-problem" id="problem-section">
+  <div class="problem-lines">
+    <span class="problem-line" data-delay="0">You post.</span>
+    <span class="problem-line" data-delay="550">You grow.</span>
+    <span class="problem-line" data-delay="1100">Someone leaves.</span>
+    <div class="problem-gap"></div>
+    <span class="problem-line" data-delay="1950">You never know who.</span>
+    <div class="problem-gap"></div>
+    <span class="problem-line accent" data-delay="3000">Until now.</span>
   </div>
 </section>
 
-<div class="divider"></div>
+<div class="s-divider"></div>
 
-<!-- Platforms -->
-<section class="platforms-section">
-  <div class="reveal">
-    <div class="section-eyebrow">Platforms</div>
-    <h2 class="section-title">All your platforms.<br>One extension.</h2>
-    <p class="section-sub">No more switching between separate tools. UnfollowSpy tracks everything in one dashboard.</p>
-  </div>
-  <div class="platforms-showcase">
+<!-- ── PRODUCT ── -->
+<section class="s-product">
+  <div class="product-grid">
 
-    <div class="platform-card pc-x reveal reveal-delay-1">
-      <div class="platform-logo">
-        <svg viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-      </div>
-      <div class="platform-name">X</div>
+    <div class="product-text">
+      <span class="eyebrow reveal">The dashboard</span>
+      <h2 class="reveal d1">Every unfollow.<br>Every new follower.<br>All in one place.</h2>
+      <p class="reveal d2">See who stopped following you, when it happened, and whether you still follow them back. Scan any supported platform in seconds.</p>
+      <ul class="feature-bullets reveal d3">
+        <li><span class="fb-dot"></span>Unfollow detection with profile info</li>
+        <li><span class="fb-dot"></span>New follower tracking</li>
+        <li><span class="fb-dot"></span>Follow-back reminders</li>
+        <li><span class="fb-dot"></span>Growth chart across all platforms</li>
+      </ul>
     </div>
 
-    <div class="platform-card pc-insta reveal reveal-delay-2">
-      <div class="platform-logo">
-        <svg viewBox="0 0 24 24">
+    <div class="product-visual reveal d2">
+      <div class="mockup-wrap">
+        <div class="mockup-glow"></div>
+        <div class="ext-mockup">
+          <div class="mockup-chrome"><span></span><span></span><span></span></div>
+          <div class="mockup-header">
+            <span class="mockup-brand">UnfollowSpy</span>
+            <span class="mockup-platform">Instagram</span>
+          </div>
+          <div class="mockup-section-label">Unfollowers</div>
+          <div class="mockup-rows">
+            <div class="mockup-row">
+              <div class="mockup-avatar" style="background:linear-gradient(135deg,#a8c8e8,#6aa8d8)"></div>
+              <div class="mockup-info">
+                <span class="mockup-name">sarah_johnson</span>
+                <span class="mockup-sub">followed 45d ago · mutual</span>
+              </div>
+              <div class="mockup-unfollow">Unfollow</div>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-avatar" style="background:linear-gradient(135deg,#f4a0b5,#e07090)"></div>
+              <div class="mockup-info">
+                <span class="mockup-name">cool.dude99</span>
+                <span class="mockup-sub">followed 12d ago</span>
+              </div>
+              <div class="mockup-unfollow">Unfollow</div>
+            </div>
+            <div class="mockup-row">
+              <div class="mockup-avatar" style="background:linear-gradient(135deg,#86c9a8,#5ab080)"></div>
+              <div class="mockup-info">
+                <span class="mockup-name">tech.creator</span>
+                <span class="mockup-sub">followed 3d ago</span>
+              </div>
+              <div class="mockup-unfollow">Unfollow</div>
+            </div>
+          </div>
+          <div class="mockup-footer">
+            <span class="mockup-new">+8 new followers</span>
+            <button class="mockup-scan-btn">Scan ↻</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Growth chart card -->
+      <div class="chart-card reveal d4">
+        <div class="cc-header">
+          <span class="cc-title">Follower growth</span>
+          <span class="cc-val">+247 this month</span>
+        </div>
+        <svg class="cc-svg" viewBox="0 0 256 72" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="ig" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#feda75"/>
-              <stop offset="25%" stop-color="#fa7e1e"/>
-              <stop offset="50%" stop-color="#d62976"/>
-              <stop offset="75%" stop-color="#962fbf"/>
-              <stop offset="100%" stop-color="#4f5bd5"/>
+            <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#a8c8e8" stop-opacity="0.22"/>
+              <stop offset="100%" stop-color="#a8c8e8" stop-opacity="0"/>
             </linearGradient>
           </defs>
-          <rect x="1" y="1" width="22" height="22" rx="6" fill="url(#ig)"/>
-          <circle cx="12" cy="12" r="5.2" fill="none" stroke="white" stroke-width="2"/>
-          <circle cx="17.2" cy="6.8" r="1.4" fill="white"/>
+          <!-- fill area -->
+          <path d="M4,62 C20,58 38,54 58,50 S88,42 112,36 S142,26 168,18 S204,12 252,6 L252,68 L4,68 Z" fill="url(#cg)"/>
+          <!-- line -->
+          <path d="M4,62 C20,58 38,54 58,50 S88,42 112,36 S142,26 168,18 S204,12 252,6" stroke="#a8c8e8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- dots -->
+          <circle cx="4"   cy="62" r="2.5" fill="#a8c8e8" opacity="0.35"/>
+          <circle cx="58"  cy="50" r="2.5" fill="#a8c8e8" opacity="0.55"/>
+          <circle cx="112" cy="36" r="2.5" fill="#a8c8e8" opacity="0.7"/>
+          <circle cx="168" cy="18" r="2.8" fill="#a8c8e8" opacity="0.85"/>
+          <circle cx="252" cy="6"  r="3.5" fill="#a8c8e8"/>
         </svg>
+        <div class="cc-foot">
+          <span class="cc-date">Jan</span>
+          <span class="cc-date">Feb</span>
+          <span class="cc-date">Mar</span>
+          <span class="cc-date">Apr</span>
+          <span class="cc-date">May</span>
+        </div>
       </div>
-      <div class="platform-name">Instagram</div>
-    </div>
 
-    <div class="platform-card pc-threads reveal reveal-delay-3">
-      <div class="platform-logo">
-        <svg viewBox="0 0 24 24" fill="white"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.5 12.068V12c.012-3.764.932-6.707 2.734-8.747C6.099 1.198 8.895 0 12.503 0c2.916 0 5.332.876 7.18 2.602 1.761 1.648 2.772 3.886 3.003 6.649l-2.957.265c-.352-4.851-3.069-7.26-7.226-7.26-2.776 0-4.957.934-6.483 2.776C4.559 6.698 3.93 9.088 3.921 12c.009 2.968.639 5.394 1.872 7.208 1.527 2.168 3.905 3.281 7.075 3.301 2.765-.016 5.01-.71 6.676-2.063 1.84-1.502 2.755-3.718 2.755-6.637 0-.438-.014-.873-.043-1.302-.03-.43-.071-.857-.123-1.277-1.041.266-1.98.408-2.812.426-.19.004-.377.006-.564.006a6.18 6.18 0 01-4.532-1.787 6.23 6.23 0 01-1.747-4.478c0-1.718.574-3.17 1.707-4.317C15.233 3.887 16.685 3.27 18.3 3.27c1.561 0 2.877.554 3.81 1.603.89 1 1.38 2.38 1.38 3.91 0 1.79-.614 3.266-1.774 4.265-.935.801-2.1 1.23-3.37 1.236-.667 0-1.288-.152-1.803-.442a4.152 4.152 0 01-.52-.362C15.9 14.4 15.162 15 14.26 15.257c-.553.158-1.143.238-1.756.238-1.367 0-2.581-.538-3.424-1.514-.846-.98-1.28-2.33-1.22-3.8.063-1.463.622-2.762 1.574-3.664.954-.9 2.238-1.378 3.72-1.378.805 0 1.556.147 2.228.436l-.003-.012.633-2.83c-.908-.405-1.892-.61-2.923-.61z"/></svg>
-      </div>
-      <div class="platform-name">Threads</div>
     </div>
-
-    <div class="platform-card pc-tiktok reveal reveal-delay-1">
-      <div class="platform-logo">
-        <svg viewBox="0 0 24 24" fill="white"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.19a8.18 8.18 0 004.85 1.56V6.31a4.83 4.83 0 01-1.08-.62z"/></svg>
-      </div>
-      <div class="platform-name">TikTok</div>
-    </div>
-
-    <div class="platform-card pc-bluesky reveal reveal-delay-2">
-      <div class="platform-logo">
-        <svg viewBox="0 0 24 24" fill="#0085ff"><path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.005-2.83 7.078 5.013 5.19 6.87-1.113 7.823-4.308.953 3.195 2.05 9.271 7.733 4.395 4.267-3.913 1.592-6.514-2.498-7.205a9.744 9.744 0 01-.414-.06c.138.017.276.036.414.06 2.671.297 5.568-.628 6.383-3.364.246-.828.624-5.79.624-6.478 0-.69-.139-1.861-.902-2.206-.659-.298-1.664-.62-4.3 1.24C16.046 4.748 13.087 8.687 12 10.8z"/></svg>
-      </div>
-      <div class="platform-name">Bluesky</div>
-    </div>
-
-    <div class="platform-card pc-rednote reveal reveal-delay-3">
-      <div class="platform-logo">
-        <svg viewBox="0 0 24 24">
-          <rect x="3" y="2" width="15" height="20" rx="2.5" fill="#ff2442"/>
-          <rect x="2.5" y="3.5" width="3" height="17" rx="1.5" fill="#cc1133"/>
-          <rect x="7.5" y="8" width="7" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/>
-          <rect x="7.5" y="11" width="5.5" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/>
-          <rect x="7.5" y="14" width="6.5" height="1.5" rx="0.75" fill="rgba(255,255,255,0.85)"/>
-        </svg>
-      </div>
-      <div class="platform-name">RedNote</div>
-    </div>
-
   </div>
 </section>
 
-<div class="divider"></div>
+<div class="s-divider"></div>
 
-<!-- Pricing -->
-<section class="pricing-section" id="pricing">
-  <div class="reveal">
-    <div class="section-eyebrow">Pricing</div>
-    <h2 class="section-title">Simple pricing.</h2>
-    <p class="section-sub">Core features are free forever. Pro unlocks the deeper insights.</p>
+<!-- ── STATS ── -->
+<section class="s-stats">
+  <div class="stats-row">
+    <div class="stat-block reveal">
+      <div class="stat-big" data-target="6" data-suffix="">6</div>
+      <div class="stat-desc">platforms supported</div>
+    </div>
+    <div class="stat-vline"></div>
+    <div class="stat-block reveal d1">
+      <div class="stat-big">$0</div>
+      <div class="stat-desc">to get started<br>no account needed</div>
+    </div>
+    <div class="stat-vline"></div>
+    <div class="stat-block reveal d2">
+      <div class="stat-big" data-target="100" data-suffix="%">100%</div>
+      <div class="stat-desc">private · data stays<br>on your device</div>
+    </div>
   </div>
-  <div class="pricing-grid">
-    <div class="pricing-card reveal reveal-delay-1">
-      <div class="pricing-tier">Free</div>
-      <div class="pricing-price">$0</div>
-      <div class="pricing-sub">Forever free, no card needed</div>
-      <ul class="pricing-features">
+</section>
+
+<div class="s-divider"></div>
+
+<!-- ── FEATURES ── -->
+<section class="s-features" id="features">
+  <div class="feat-header reveal">
+    <span class="eyebrow">Features</span>
+    <h2>Everything a creator needs.</h2>
+  </div>
+  <div class="feat-grid">
+    <div class="feat reveal">
+      <div class="feat-name">Unfollow Tracking</div>
+      <div class="feat-desc">See exactly who unfollowed you since your last scan, with profile info and one-click unfollow.</div>
+      <span class="feat-badge b-free">Free</span>
+    </div>
+    <div class="feat reveal d1">
+      <div class="feat-name">New Followers</div>
+      <div class="feat-desc">Every new follower since your last scan, listed with their profile.</div>
+      <span class="feat-badge b-free">Free</span>
+    </div>
+    <div class="feat reveal d2">
+      <div class="feat-name">Mutual Tracking</div>
+      <div class="feat-desc">Filter unfollowers to show only accounts you still follow back.</div>
+      <span class="feat-badge b-free">Free</span>
+    </div>
+    <div class="feat reveal d3">
+      <div class="feat-name">Growth Chart</div>
+      <div class="feat-desc">Follower count over time across all platforms in a single view.</div>
+      <span class="feat-badge b-free">Free</span>
+    </div>
+    <div class="feat reveal">
+      <div class="feat-name">Follow-back Reminders</div>
+      <div class="feat-desc">Flags accounts you've followed for 30+ days with no follow-back.</div>
+      <span class="feat-badge b-free">Free</span>
+    </div>
+    <div class="feat reveal d1">
+      <div class="feat-name">Streak Tracking</div>
+      <div class="feat-desc">Daily growth streaks with milestone notifications at 3, 7, 14, and 30 days.</div>
+      <span class="feat-badge b-free">Free</span>
+    </div>
+    <div class="feat reveal d2">
+      <div class="feat-name">Ghost Followers</div>
+      <div class="feat-desc">AI-powered detection of bot-like and inactive accounts in your follower list.</div>
+      <span class="feat-badge b-pro">Pro</span>
+    </div>
+    <div class="feat reveal d3">
+      <div class="feat-name">Best Time to Post</div>
+      <div class="feat-desc">Analyzes your own scan history to find the days your audience grows most.</div>
+      <span class="feat-badge b-pro">Pro</span>
+    </div>
+  </div>
+</section>
+
+<div class="s-divider"></div>
+
+<!-- ── PRICING ── -->
+<section class="s-pricing" id="pricing">
+  <div class="pricing-header reveal">
+    <span class="eyebrow">Pricing</span>
+    <h2>Simple pricing.</h2>
+  </div>
+  <div class="pricing-wrap">
+    <div class="p-card reveal d1">
+      <div class="p-tier">Free</div>
+      <div class="p-price">$0</div>
+      <div class="p-sub">Forever free, no card needed</div>
+      <ul class="p-list">
         <li>Unfollow tracking</li>
         <li>New follower detection</li>
         <li>Growth chart</li>
@@ -1206,13 +684,13 @@
         <li>Streak tracking</li>
         <li>6 platforms</li>
       </ul>
-      <a href="#" class="btn-pricing free">Add to Chrome</a>
+      <a href="#" class="p-btn p-btn-free">Add to Chrome</a>
     </div>
-    <div class="pricing-card pro reveal reveal-delay-2">
-      <div class="pricing-tier">Pro</div>
-      <div class="pricing-price">$5</div>
-      <div class="pricing-sub">One-time payment, yours forever</div>
-      <ul class="pricing-features">
+    <div class="p-card pro reveal d2">
+      <div class="p-tier pro">Pro</div>
+      <div class="p-price">$5</div>
+      <div class="p-sub">One-time · yours forever</div>
+      <ul class="p-list">
         <li>Everything in Free</li>
         <li class="pro-item">Ghost follower detection</li>
         <li class="pro-item">Follower quality scores</li>
@@ -1220,26 +698,27 @@
         <li class="pro-item">Auto-scan reminders</li>
         <li class="pro-item">Priority support</li>
       </ul>
-      <a href="#" class="btn-pricing pro-btn">Get Pro</a>
+      <a href="#" class="p-btn p-btn-pro">Get Pro</a>
     </div>
   </div>
 </section>
 
-<div class="divider"></div>
+<div class="s-divider"></div>
 
-<!-- Final CTA -->
-<section class="cta-section">
-  <div class="cta-glow"></div>
-  <div class="reveal">
-    <div class="section-eyebrow">Get Started</div>
-    <h2 class="section-title">Start tracking<br><span class="grad">in 30 seconds.</span></h2>
-    <p class="section-sub" style="margin-bottom:52px;">Free. No account. No signup. Just install and scan.</p>
-    <div class="cta-pulse-wrap">
-      <a href="#" class="btn-primary floating">Add to Chrome — It's Free</a>
+<!-- ── CTA ── -->
+<section class="s-cta">
+  <div class="cta-inner">
+    <h2 class="reveal">Ready<br>to know?</h2>
+    <div class="reveal d1">
+      <div class="pulse-wrap">
+        <a href="#" class="btn-primary" style="font-size:15px;padding:15px 40px">Add to Chrome — Free</a>
+      </div>
     </div>
+    <p class="cta-sub reveal d2">Pro from $5 · 30-day money-back guarantee</p>
   </div>
 </section>
 
+<!-- Footer -->
 <footer>
   <span class="footer-logo">UnfollowSpy</span>
   <div class="footer-links">
@@ -1250,270 +729,50 @@
 </footer>
 
 <script>
-// ── Canvas: nebulas (cached) + planet (cached) + stars + meteors ──
-const canvas = document.getElementById('bg-canvas');
-const ctx    = canvas.getContext('2d');
-const isMobile = window.innerWidth < 700 || navigator.maxTouchPoints > 0;
-let W, H, mouseX = 0, mouseY = 0;
-let stars = [], meteors = [];
-let planetCache = null;
-let nebulaCache = null, nebulaCacheTime = -99999;
-const NEBULA_TTL = isMobile ? 3000 : 2000; // ms between nebula redraws
+  // Scroll reveal
+  const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
 
-const NEBULAS = [
-  { xr: 0.15, yr: 0.28, r: 380, c: [80,40,220],  bo: 0.07 },
-  { xr: 0.72, yr: 0.65, r: 320, c: [0,170,230],   bo: 0.055 },
-  { xr: 0.48, yr: 0.52, r: 290, c: [210,40,150],  bo: 0.045 },
-  { xr: 0.88, yr: 0.22, r: 240, c: [30,180,140],  bo: 0.04 },
-  { xr: 0.3,  yr: 0.8,  r: 260, c: [200,120,40],  bo: 0.03 },
-];
-
-function resize() {
-  W = canvas.width  = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-  planetCache = null;
-  nebulaCache = null;
-  nebulaCacheTime = -99999;
-}
-
-function initStars() {
-  const count = isMobile ? 70 : 220;
-  stars = Array.from({ length: count }, () => ({
-    x:     Math.random() * W,
-    y:     Math.random() * H,
-    r:     Math.random() * 1.6 + 0.2,
-    o:     Math.random() * 0.55 + 0.1,
-    speed: Math.random() * 0.014 + 0.004,
-    phase: Math.random() * Math.PI * 2,
-    depth: Math.random(),
-    bright: !isMobile && Math.random() > 0.75 // halos desktop only
-  }));
-}
-
-// ── Nebula cache: 5 gradient objects rebuilt every NEBULA_TTL ms, not every frame ──
-function buildNebulaCache(t) {
-  if (!nebulaCache || nebulaCache.width !== W || nebulaCache.height !== H) {
-    nebulaCache = document.createElement('canvas');
-    nebulaCache.width = W; nebulaCache.height = H;
-  }
-  const nc = nebulaCache.getContext('2d');
-  nc.clearRect(0, 0, W, H);
-  nc.globalCompositeOperation = 'screen';
-  for (const n of NEBULAS) {
-    const x = n.xr * W + Math.sin(t * 0.00025 + n.xr * 8) * 55;
-    const y = n.yr * H + Math.cos(t * 0.00018 + n.yr * 9) * 38;
-    const o = n.bo * (0.75 + 0.25 * Math.sin(t * 0.0009 + n.xr * 5));
-    const g = nc.createRadialGradient(x, y, 0, x, y, n.r);
-    g.addColorStop(0,    `rgba(${n.c[0]},${n.c[1]},${n.c[2]},${o})`);
-    g.addColorStop(0.45, `rgba(${n.c[0]},${n.c[1]},${n.c[2]},${o * 0.35})`);
-    g.addColorStop(1,    `rgba(${n.c[0]},${n.c[1]},${n.c[2]},0)`);
-    nc.beginPath(); nc.arc(x, y, n.r, 0, Math.PI * 2);
-    nc.fillStyle = g; nc.fill();
-  }
-}
-
-function drawNebulas(t) {
-  if (t - nebulaCacheTime > NEBULA_TTL) {
-    buildNebulaCache(t);
-    nebulaCacheTime = t;
-  }
-  ctx.globalCompositeOperation = 'screen';
-  ctx.drawImage(nebulaCache, 0, 0);
-  ctx.globalCompositeOperation = 'source-over';
-}
-
-// ── Planet: drawn once to offscreen canvas, blitted every frame ──
-function buildPlanetCache() {
-  const r   = Math.min(W, H) * 0.1;
-  const pad = r * 3.5;
-  const oc  = document.createElement('canvas');
-  oc.width  = oc.height = pad * 2;
-  const c   = oc.getContext('2d');
-  const cx  = pad, cy = pad;
-
-  const atmo = c.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 3.2);
-  atmo.addColorStop(0, 'rgba(80,130,230,0.07)');
-  atmo.addColorStop(1, 'rgba(80,130,230,0)');
-  c.beginPath(); c.arc(cx, cy, r * 3.2, 0, Math.PI * 2);
-  c.fillStyle = atmo; c.fill();
-
-  const body = c.createRadialGradient(cx - r * 0.28, cy - r * 0.32, r * 0.08, cx, cy, r);
-  body.addColorStop(0,   'rgba(160,195,255,0.2)');
-  body.addColorStop(0.4, 'rgba(90,130,215,0.14)');
-  body.addColorStop(0.8, 'rgba(40,70,170,0.09)');
-  body.addColorStop(1,   'rgba(20,40,120,0)');
-  c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2);
-  c.fillStyle = body; c.fill();
-
-  c.save();
-  c.translate(cx, cy); c.rotate(-0.28); c.scale(1, 0.28);
-  c.beginPath(); c.arc(0, 0, r * 1.75, 0, Math.PI * 2);
-  c.strokeStyle = 'rgba(140,185,250,0.07)'; c.lineWidth = 10; c.stroke();
-  c.beginPath(); c.arc(0, 0, r * 2.05, 0, Math.PI * 2);
-  c.strokeStyle = 'rgba(140,185,250,0.04)'; c.lineWidth = 5; c.stroke();
-  c.restore();
-
-  return { canvas: oc, r, pad };
-}
-
-function drawPlanet() {
-  if (!planetCache) planetCache = buildPlanetCache();
-  const { canvas: pc, pad } = planetCache;
-  ctx.drawImage(pc, W * 0.84 - pad, H * 0.16 - pad);
-}
-
-function drawStars(t) {
-  // Halos via shadowBlur — desktop only, expensive on mobile GPU
-  if (!isMobile) {
-    ctx.save();
-    ctx.shadowColor = 'rgba(168,200,232,0.5)';
-    for (const s of stars) {
-      if (!s.bright) continue;
-      const px = s.x + mouseX * s.depth * 20;
-      const py = s.y + mouseY * s.depth * 20;
-      const o  = s.o * (0.6 + 0.4 * Math.sin(t * s.speed + s.phase));
-      ctx.shadowBlur = s.r * 10;
-      ctx.globalAlpha = o * 0.35;
-      ctx.beginPath(); ctx.arc(px, py, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = '#a8c8e8'; ctx.fill();
-    }
-    ctx.restore();
+  // Counter animation
+  function animateCounter(el) {
+    const target = parseInt(el.dataset.target, 10);
+    const suffix = el.dataset.suffix || '';
+    if (isNaN(target)) return;
+    let start = null;
+    (function step(ts) {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / 1400, 1);
+      el.textContent = Math.floor((1 - Math.pow(1 - p, 3)) * target) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    })(performance.now());
   }
 
-  for (const s of stars) {
-    const px = isMobile ? s.x : s.x + mouseX * s.depth * 20;
-    const py = isMobile ? s.y : s.y + mouseY * s.depth * 20;
-    const o  = s.o * (0.6 + 0.4 * Math.sin(t * s.speed + s.phase));
-    ctx.globalAlpha = o;
-    ctx.beginPath(); ctx.arc(px, py, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = '#a8c8e8'; ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-}
+  const counterObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.querySelectorAll('[data-target]').forEach(animateCounter); counterObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.25 });
+  document.querySelectorAll('.stat-block').forEach(el => counterObs.observe(el));
 
-// Meteors: desktop only — each one allocates a linearGradient object
-function spawnMeteor() {
-  if (isMobile || Math.random() > 0.005) return;
-  meteors.push({
-    x: Math.random() * W * 0.8, y: Math.random() * H * 0.45,
-    vx: 6 + Math.random() * 7,  vy: 2 + Math.random() * 3,
-    life: 0, maxLife: 50 + Math.random() * 40,
-    tail: 80 + Math.random() * 110, width: 0.8 + Math.random() * 1.4
-  });
-}
+  // Problem section: cinematic line-by-line reveal
+  const problemSection = document.getElementById('problem-section');
+  const problemLines = problemSection.querySelectorAll('.problem-line');
+  let problemDone = false;
 
-function drawMeteors() {
-  spawnMeteor();
-  meteors = meteors.filter(m => m.life < m.maxLife);
-  for (const m of meteors) {
-    const p     = m.life / m.maxLife;
-    const alpha = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8;
-    const mag   = Math.sqrt(m.vx * m.vx + m.vy * m.vy);
-    const tx = m.x - (m.vx / mag) * m.tail;
-    const ty = m.y - (m.vy / mag) * m.tail;
-    const grad = ctx.createLinearGradient(tx, ty, m.x, m.y);
-    grad.addColorStop(0,   'rgba(168,200,232,0)');
-    grad.addColorStop(0.7, `rgba(200,225,250,${alpha * 0.55})`);
-    grad.addColorStop(1,   `rgba(230,245,255,${alpha * 0.85})`);
-    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(m.x, m.y);
-    ctx.strokeStyle = grad; ctx.lineWidth = m.width; ctx.stroke();
-    ctx.save();
-    ctx.shadowBlur = 6; ctx.shadowColor = `rgba(200,230,255,${alpha * 0.6})`;
-    ctx.globalAlpha = alpha;
-    ctx.beginPath(); ctx.arc(m.x, m.y, 2, 0, Math.PI * 2);
-    ctx.fillStyle = '#e8f5ff'; ctx.fill();
-    ctx.restore();
-    m.x += m.vx; m.y += m.vy; m.life++;
-  }
-}
-
-// 30fps cap on mobile — rAF still runs at vsync, we just skip most frames
-const FRAME_MIN = isMobile ? 1000 / 30 : 0;
-let lastFrameTime = 0;
-
-function draw(t) {
-  requestAnimationFrame(draw);
-  if (isMobile && t - lastFrameTime < FRAME_MIN) return;
-  lastFrameTime = t;
-  ctx.clearRect(0, 0, W, H);
-  drawNebulas(t);
-  drawPlanet();
-  drawStars(t);
-  if (!isMobile) drawMeteors();
-}
-
-window.addEventListener('mousemove', e => {
-  mouseX = (e.clientX / W - 0.5) * 2;
-  mouseY = (e.clientY / H - 0.5) * 2;
-}, { passive: true });
-
-window.addEventListener('resize', () => { resize(); initStars(); });
-resize();
-initStars();
-requestAnimationFrame(draw);
-
-// ── 3D card tilt (transform only — no boxShadow paint changes) ──
-const tiltCard = document.getElementById('tilt-card');
-let tiltActive = false;
-
-window.addEventListener('mousemove', e => {
-  if (!tiltCard) return;
-  const rect = tiltCard.getBoundingClientRect();
-  const cx   = rect.left + rect.width  / 2;
-  const cy   = rect.top  + rect.height / 2;
-  const dist = Math.sqrt((e.clientX - cx) ** 2 + (e.clientY - cy) ** 2);
-
-  if (dist < 380) {
-    const dx = (e.clientX - cx) / (rect.width  / 2);
-    const dy = (e.clientY - cy) / (rect.height / 2);
-    tiltCard.style.animation = 'none';
-    tiltCard.style.transform = `perspective(900px) rotateX(${dy * 14}deg) rotateY(${-dx * 14}deg) scale(1.02)`;
-    tiltActive = true;
-  } else if (tiltActive) {
-    tiltCard.style.animation = '';
-    tiltCard.style.transform = '';
-    tiltActive = false;
-  }
-}, { passive: true });
-
-// ── Scroll reveal + counters ──
-const revealObs = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    e.target.classList.add('visible');
-    revealObs.unobserve(e.target);
-    e.target.querySelectorAll('[data-target]').forEach(animateCounter);
-  });
-}, { threshold: 0.12 });
-
-document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
-
-function animateCounter(el) {
-  const target = parseInt(el.dataset.target, 10);
-  const suffix = el.dataset.suffix || '';
-  let start = null;
-  (function step(ts) {
-    if (!start) start = ts;
-    const p    = Math.min((ts - start) / 1400, 1);
-    const ease = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.floor(ease * target) + suffix;
-    if (p < 1) requestAnimationFrame(step);
-  })(performance.now());
-}
-
-// ── Hero parallax — throttled with rAF so it never fires faster than 60fps ──
-const hero = document.querySelector('.hero');
-let scrollTicking = false;
-window.addEventListener('scroll', () => {
-  if (scrollTicking) return;
-  scrollTicking = true;
-  requestAnimationFrame(() => {
-    const s = window.scrollY;
-    hero.style.transform = `translateY(${s * 0.26}px)`;
-    hero.style.opacity   = Math.max(0, 1 - s / 580);
-    scrollTicking = false;
-  });
-}, { passive: true });
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !problemDone) {
+        problemDone = true;
+        problemLines.forEach(line => {
+          setTimeout(() => line.classList.add('visible'), parseInt(line.dataset.delay || '0', 10));
+        });
+      }
+    });
+  }, { threshold: 0.25 }).observe(problemSection);
 </script>
 </body>
 </html>
