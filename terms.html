@@ -5,23 +5,126 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Terms of Service – UnfollowSpy</title>
   <style>
+    :root {
+      --bg: #0a0d18;
+      --surface: #111827;
+      --faint: rgba(168,200,232,0.1);
+      --accent: #a8c8e8;
+      --text: #e7e9ea;
+      --muted: #71767b;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f0f; color: #fff; line-height: 1.7; }
-    nav { padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-    nav a { color: #aaa; text-decoration: none; font-size: 14px; margin-left: 24px; }
-    nav a:hover { color: #fff; }
-    .logo { font-weight: 700; font-size: 20px; text-decoration: none; color: #fff; }
-    .content { max-width: 720px; margin: 60px auto; padding: 0 20px; }
-    h1 { font-size: 36px; margin-bottom: 8px; }
-    .updated { color: #555; font-size: 14px; margin-bottom: 40px; }
-    h2 { font-size: 20px; margin: 36px 0 12px; }
-    p { color: #ccc; margin-bottom: 16px; }
-    footer { text-align: center; padding: 40px; color: #555; font-size: 13px; border-top: 1px solid #222; margin-top: 80px; }
-    footer a { color: #555; margin: 0 12px; text-decoration: none; }
-    footer a:hover { color: #aaa; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 3; pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 520px; height: 520px; background: #1a2a6c; opacity: 0.13; top: -160px; right: -80px; }
+    .orb-2 { width: 420px; height: 420px; background: #4a1a5c; opacity: 0.1; bottom: 5%; left: -120px; }
+    .orb-3 { width: 280px; height: 280px; background: #0e4a6a; opacity: 0.11; top: 45%; right: 15%; }
+
+    nav {
+      position: sticky; top: 0; z-index: 10;
+      padding: 18px 40px;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(10,13,24,0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--faint);
+    }
+
+    .logo {
+      font-weight: 800; font-size: 17px;
+      text-decoration: none; color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    nav a {
+      color: var(--muted); text-decoration: none;
+      font-size: 13px; margin-left: 24px;
+      transition: color 0.15s;
+    }
+    nav a:hover { color: var(--text); }
+
+    .content {
+      position: relative; z-index: 1;
+      max-width: 720px; margin: 56px auto 100px;
+      padding: 48px 52px;
+      background: rgba(17,24,39,0.5);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid var(--faint);
+      border-radius: 20px;
+    }
+
+    h1 {
+      font-size: 34px; font-weight: 800;
+      letter-spacing: -0.5px; margin-bottom: 6px;
+    }
+
+    .updated {
+      color: var(--muted); font-size: 13px; margin-bottom: 44px;
+    }
+
+    h2 {
+      font-size: 15px; font-weight: 700;
+      letter-spacing: -0.1px;
+      margin: 36px 0 10px;
+      color: var(--accent);
+    }
+
+    p {
+      color: rgba(231,233,234,0.72);
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 28px 20px 48px;
+      color: var(--muted); font-size: 12px;
+      border-top: 1px solid var(--faint);
+    }
+
+    footer a {
+      color: var(--muted); margin: 0 10px;
+      text-decoration: none; transition: color 0.15s;
+    }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .content { margin: 28px 16px 80px; padding: 32px 24px; }
+      h1 { font-size: 28px; }
+    }
   </style>
 </head>
 <body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
   <nav>
     <a class="logo" href="index.html">UnfollowSpy</a>
     <div>
@@ -30,6 +133,7 @@
       <a href="refund.html">Refunds</a>
     </div>
   </nav>
+
   <div class="content">
     <h1>Terms of Service</h1>
     <p class="updated">Last updated: May 2026</p>
@@ -38,16 +142,16 @@
     <p>By installing or using the UnfollowSpy Chrome extension, you agree to these Terms of Service. If you do not agree, do not use the service.</p>
 
     <h2>2. Description of Service</h2>
-    <p>UnfollowSpy is a Chrome extension that helps users track follower changes on X (formerly Twitter). A free tier is available with limited scans. A one-time Pro upgrade unlocks unlimited scans and followers.</p>
+    <p>UnfollowSpy is a Chrome extension that helps users track follower changes across supported social platforms. A free tier is available. A one-time Pro upgrade unlocks additional features including Ghost Followers and Best Time to Post insights.</p>
 
-    <h2>3. Acceptable Use</html>
-    <p>You agree not to use UnfollowSpy to scrape data at scale, automate actions on X beyond personal follower tracking, or violate X's Terms of Service.</p>
+    <h2>3. Acceptable Use</h2>
+    <p>You agree not to use UnfollowSpy to scrape data at scale, automate actions beyond personal follower tracking, or violate the Terms of Service of any platform the extension supports.</p>
 
     <h2>4. License</h2>
     <p>Pro license keys are for personal use only and may not be shared, resold, or transferred. One license key per user.</p>
 
     <h2>5. Disclaimer of Warranties</h2>
-    <p>UnfollowSpy is provided "as is" without warranties of any kind. We do not guarantee uninterrupted service, as the extension depends on X's website structure which may change.</p>
+    <p>UnfollowSpy is provided "as is" without warranties of any kind. We do not guarantee uninterrupted service, as the extension depends on third-party website structures which may change without notice.</p>
 
     <h2>6. Limitation of Liability</h2>
     <p>To the maximum extent permitted by law, UnfollowSpy shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service.</p>
@@ -58,8 +162,9 @@
     <h2>8. Contact</h2>
     <p>For questions about these terms, contact us at: support@getunfollowspy.com</p>
   </div>
+
   <footer>
-    <p>&copy; 2026 UnfollowSpy &nbsp;|&nbsp;
+    <p>&copy; 2026 UnfollowSpy &nbsp;&nbsp;
       <a href="privacy.html">Privacy Policy</a>
       <a href="terms.html">Terms of Service</a>
       <a href="refund.html">Refund Policy</a>
